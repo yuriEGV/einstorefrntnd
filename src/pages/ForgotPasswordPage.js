@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiFetch } from '../api';
+
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState('');

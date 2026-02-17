@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { apiFetch } from '../api';
 import { Users, ShoppingBag, DollarSign, Activity, X, Plus, Trash2, Edit, Shield, Package, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -48,22 +48,22 @@ const Dashboard = ({ user }) => {
         fetchAllProducts();
       }
     }
-  }, [user, activeTab]);
+  }, [user, activeTab, fetchAdminStats, fetchMyOrders, fetchMyProducts, fetchAllUsers, fetchAllProducts]);
 
   const [allGlobalProducts, setAllGlobalProducts] = useState([]);
-  const fetchAllProducts = () => {
+  const fetchAllProducts = useCallback(() => {
     apiFetch('/products')
       .then(data => setAllGlobalProducts(data.products || []))
       .catch(err => console.error(err));
-  };
+  }, []);
 
-  const fetchAllUsers = () => {
+  const fetchAllUsers = useCallback(() => {
     apiFetch('/users')
       .then(data => setAllUsers(data.users || []))
       .catch(err => console.error(err));
-  };
+  }, []);
 
-  const fetchAdminStats = () => {
+  const fetchAdminStats = useCallback(() => {
     apiFetch('/orders/stats/dashboard')
       .then(data => {
         setStats({
@@ -76,7 +76,7 @@ const Dashboard = ({ user }) => {
         });
       })
       .catch(err => console.error("Failed to fetch admin stats", err));
-  };
+  }, []);
 
   const clearNotifications = () => {
     apiFetch('/orders/mark-as-notified', { method: 'PATCH' })
@@ -87,20 +87,20 @@ const Dashboard = ({ user }) => {
       .catch(err => console.error("Failed to clear notifications", err));
   };
 
-  const fetchMyOrders = () => {
+  const fetchMyOrders = useCallback(() => {
     apiFetch('/orders/showAllMyOrders').then(data => {
       if (data.orders) setRecentOrders(data.orders.slice(0, 5));
     }).catch(err => console.log(err));
-  };
+  }, []);
 
-  const fetchMyProducts = () => {
+  const fetchMyProducts = useCallback(() => {
     // Requires backend to support filtering by user or a dedicated endpoint
     // We added ?user=ID support in getAllProducts
     const userId = user._id || user.userId;
     apiFetch(`/products?user=${userId}`)
       .then(data => setMyProducts(data.products || []))
       .catch(err => console.error(err));
-  };
+  }, [user]);
 
   // --- Product Handlers ---
   const handleProductSubmit = async (e) => {

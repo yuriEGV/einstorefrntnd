@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch } from '../api';
 import { useTranslation } from 'react-i18next';
-import { User, Package, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { User, Package, Clock } from 'lucide-react';
 
 const ProfilePage = ({ user }) => {
     const [orders, setOrders] = useState([]);

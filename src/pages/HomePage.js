@@ -10,7 +10,7 @@ const HomePage = ({ user }) => {
 
     useEffect(() => {
         // Determine user status for cart key
-        const currentKey = getCartKey(user);
+        getCartKey(user);
 
         // Fetch products and take top 4
         apiFetch('/products')

@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { getCartKey, readCart, writeCart } from '../utils/cart';
+import { getCartKey, readCart } from '../utils/cart';
 import { apiFetch } from '../api';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, CreditCard, Truck } from 'lucide-react';
+import { ShieldCheck, CreditCard } from 'lucide-react';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { useTranslation } from 'react-i18next';
 
@@ -40,7 +40,6 @@ const CheckoutPage = ({ user }) => {
 
       // 1. Create Order in Backend
       const orderData = await apiFetch('/orders', { method: 'POST', body: JSON.stringify(body) });
-      const { orderId } = orderData.order;
 
       // 2. Create MercadoPago Preference
       const mpData = await apiFetch('/payments/mercadopago/create-preference', {
