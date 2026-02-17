@@ -116,14 +116,10 @@ const Dashboard = ({ user }) => {
         const formData = new FormData();
         formData.append('image', mediaFile);
 
-        // Uses Vercel proxy rewrite
-        const uploadRes = await fetch('/api/v1/products/upload', {
+        const uploadData = await apiFetch('/products/upload', {
           method: 'POST',
           body: formData,
-          credentials: 'include',
         });
-        const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadData.msg || 'Upload failed');
         imagePath = uploadData.image;
       }
 

@@ -32,7 +32,7 @@ function App() {
 
   // Al cargar, intento obtener usuario autenticado
   useEffect(() => {
-    apiFetch('/auth/showMe')
+    apiFetch(`/auth/showMe?_=${Date.now()}`)
       .then(data => {
         setUser(data.user);
         setLoading(false);
