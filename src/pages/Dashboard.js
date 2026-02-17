@@ -34,21 +34,7 @@ const Dashboard = ({ user }) => {
   // Users Management State
   const [allUsers, setAllUsers] = useState([]);
 
-  useEffect(() => {
-    if (user) {
-      fetchAdminStats();
-      fetchMyOrders();
-      if (activeTab === 'my-products') {
-        fetchMyProducts();
-      }
-      if (activeTab === 'users' && user.role === 'admin') {
-        fetchAllUsers();
-      }
-      if (activeTab === 'all-products' && user.role === 'admin') {
-        fetchAllProducts();
-      }
-    }
-  }, [user, activeTab, fetchAdminStats, fetchMyOrders, fetchMyProducts, fetchAllUsers, fetchAllProducts]);
+
 
   const [allGlobalProducts, setAllGlobalProducts] = useState([]);
   const fetchAllProducts = useCallback(() => {
@@ -101,6 +87,22 @@ const Dashboard = ({ user }) => {
       .then(data => setMyProducts(data.products || []))
       .catch(err => console.error(err));
   }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchAdminStats();
+      fetchMyOrders();
+      if (activeTab === 'my-products') {
+        fetchMyProducts();
+      }
+      if (activeTab === 'users' && user.role === 'admin') {
+        fetchAllUsers();
+      }
+      if (activeTab === 'all-products' && user.role === 'admin') {
+        fetchAllProducts();
+      }
+    }
+  }, [user, activeTab, fetchAdminStats, fetchMyOrders, fetchMyProducts, fetchAllUsers, fetchAllProducts]);
 
   // --- Product Handlers ---
   const handleProductSubmit = async (e) => {
