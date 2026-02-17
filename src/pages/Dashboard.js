@@ -116,13 +116,11 @@ const Dashboard = ({ user }) => {
         const formData = new FormData();
         formData.append('image', mediaFile);
 
-        // Use raw fetch for FormData to let browser set boundary
-        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
-        const uploadRes = await fetch(`${API_URL}/products/upload`, {
+        // Uses Vercel proxy rewrite
+        const uploadRes = await fetch('/api/v1/products/upload', {
           method: 'POST',
           body: formData,
           credentials: 'include',
-          // Important: Don't set Content-Type header with FormData
         });
         const uploadData = await uploadRes.json();
         if (!uploadRes.ok) throw new Error(uploadData.msg || 'Upload failed');
