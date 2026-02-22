@@ -417,7 +417,7 @@ const Dashboard = ({ user }) => {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        {user?.email?.toLowerCase() === 'yguajardov@gmail.com' && (
+                        {user.role === 'admin' && (
                           <select
                             value={u.role}
                             onChange={(e) => handleRoleChange(u._id, e.target.value)}
@@ -429,7 +429,7 @@ const Dashboard = ({ user }) => {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        {user?.email?.toLowerCase() === 'yguajardov@gmail.com' && u._id !== (user._id || user.userId) && (
+                        {user.role === 'admin' && u._id !== (user._id || user.userId) && (
                           <button
                             onClick={() => handleDeleteUser(u._id)}
                             className="text-red-600 hover:text-red-900 transition-colors"
