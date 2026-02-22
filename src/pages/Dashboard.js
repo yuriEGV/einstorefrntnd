@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { apiFetch } from '../api';
-import { Users, ShoppingBag, DollarSign, Activity, X, Plus, Trash2, Edit, Shield, Package, Lock } from 'lucide-react';
+import { Users, ShoppingBag, DollarSign, Activity, X, Plus, Trash2, Edit, Shield, Package, Lock, Menu, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
@@ -42,6 +42,7 @@ const Dashboard = ({ user }) => {
 
   // Users Management State
   const [allUsers, setAllUsers] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
 
 
@@ -230,23 +231,36 @@ const Dashboard = ({ user }) => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar / Tabs */}
-      <div className="w-64 bg-white shadow-lg hidden md:block">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-indigo-600">{t('nav.dashboard')}</h2>
-          <p className="text-sm text-gray-500">{t('common.welcome')}, {user.name}</p>
+      <motion.div
+        animate={{ width: isSidebarOpen ? 256 : 80 }}
+        className="bg-white shadow-lg hidden md:flex flex-col overflow-hidden"
+      >
+        <div className="p-6 flex justify-between items-center whitespace-nowrap overflow-hidden">
+          {isSidebarOpen && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <h2 className="text-2xl font-bold text-indigo-600">{t('nav.dashboard')}</h2>
+              <p className="text-sm text-gray-500">{t('common.welcome')}, {user.name}</p>
+            </motion.div>
+          )}
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors ml-auto"
+          >
+            {isSidebarOpen ? <ChevronLeft size={20} /> : <Menu size={20} />}
+          </button>
         </div>
-        <nav className="mt-6">
-          <SidebarItem icon={<Activity />} label={t('common.overview')} active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-          <SidebarItem icon={<Package />} label={t('common.my_products')} active={activeTab === 'my-products'} onClick={() => setActiveTab('my-products')} />
-          <SidebarItem icon={<Shield />} label={t('common.security')} active={activeTab === 'security'} onClick={() => setActiveTab('security')} />
+        <nav className="mt-6 flex-1 px-4">
+          <SidebarItem icon={<Activity />} label={t('common.overview')} active={activeTab === 'overview'} isOpen={isSidebarOpen} onClick={() => setActiveTab('overview')} />
+          <SidebarItem icon={<Package />} label={t('common.my_products')} active={activeTab === 'my-products'} isOpen={isSidebarOpen} onClick={() => setActiveTab('my-products')} />
+          <SidebarItem icon={<Shield />} label={t('common.security')} active={activeTab === 'security'} isOpen={isSidebarOpen} onClick={() => setActiveTab('security')} />
           {user.role === 'admin' && (
-            <SidebarItem icon={<Users />} label={t('common.users')} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />
+            <SidebarItem icon={<Users />} label={t('common.users')} active={activeTab === 'users'} isOpen={isSidebarOpen} onClick={() => setActiveTab('users')} />
           )}
           {user.role === 'admin' && (
-            <SidebarItem icon={<ShoppingBag />} label={t('common.all_products')} active={activeTab === 'all-products'} onClick={() => setActiveTab('all-products')} />
+            <SidebarItem icon={<ShoppingBag />} label={t('common.all_products')} active={activeTab === 'all-products'} isOpen={isSidebarOpen} onClick={() => setActiveTab('all-products')} />
           )}
         </nav>
-      </div>
+      </motion.div>
 
       {/* Main Content */}
       <div className="flex-1 p-8 overflow-y-auto">
@@ -557,10 +571,22 @@ const Dashboard = ({ user }) => {
   );
 };
 
-const SidebarItem = ({ icon, label, active, onClick }) => (
-  <button onClick={onClick} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors mb-1 ${active ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50'}`}>
+const SidebarItem = ({ icon, label, active, isOpen, onClick }) => (
+  <button
+    onClick={onClick}
+    title={!isOpen ? label : ''}
+    className={`w-full flex items-center px-4 py-3 rounded-lg transition-all mb-1 ${active ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50'} ${!isOpen ? 'justify-center' : 'space-x-3'}`}
+  >
     {React.cloneElement(icon, { size: 20 })}
-    <span className="font-medium">{label}</span>
+    {isOpen && (
+      <motion.span
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="font-medium whitespace-nowrap"
+      >
+        {label}
+      </motion.span>
+    )}
   </button>
 );
 
