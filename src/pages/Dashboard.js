@@ -48,6 +48,7 @@ const Dashboard = ({ user }) => {
   // Users Management State
   const [allUsers, setAllUsers] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
 
 
@@ -320,6 +321,19 @@ const Dashboard = ({ user }) => {
 
       {/* Main Content */}
       <div className="flex-1 p-8 overflow-y-auto">
+        {/* Search Bar */}
+        <div className="mb-6 relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar por nombre, ID, email o empresa..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all shadow-sm"
+          />
+        </div>
 
         {/* Mobile Tab Nav */}
         <div className="md:hidden flex space-x-4 mb-6 overflow-x-auto pb-2">
@@ -405,83 +419,89 @@ const Dashboard = ({ user }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {recentOrders.map((order) => (
-                      <tr key={order._id}>
-                        <td className="px-6 py-4 font-medium">#{order._id.slice(-6).toUpperCase()}</td>
-                        <td className="px-6 py-4 text-gray-500">
-                          {order.user?.name || 'Guest'}
-                        </td>
-                        <td className="px-6 py-4 text-xs">
-                          {order.status === 'paid' ? (
-                            <div className="text-indigo-600 font-medium italic">
-                              {order.shippingAddress || 'No address provided'}
-                            </div>
-                          ) : (
-                            <span className="text-gray-400">Hidden until paid</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${order.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{order.status}</span></td>
-                        <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-2">
-                            {order.status === 'paid' && (
-                              <button
-                                onClick={() => handleUpdateOrderStatus(order._id, 'shipped')}
-                                className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition"
-                                title="Marcar como enviado"
-                              >
-                                Marcar Enviado
-                              </button>
-                            )}
-                            {order.status === 'shipped' && order.user?._id === (user._id || user.userId) && (
-                              <button
-                                onClick={() => handleUpdateOrderStatus(order._id, 'delivered')}
-                                className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transition"
-                                title="Confirmar recepción"
-                              >
-                                Confirmar Recibo
-                              </button>
-                            )}
-                            {(order.status === 'paid' || order.status === 'shipped' || order.status === 'delivered') && (
-                              <button
-                                onClick={() => openChat(order)}
-                                className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition flex items-center"
-                                title="Abrir Chat"
-                              >
-                                <MessageSquare className="w-3 h-3 mr-1" />
-                                Chat
-                              </button>
-                            )}
-                            {order.status === 'paid' && order.user?._id === (user._id || user.userId) && order.disputeStatus === 'none' && (
-                              <button
-                                onClick={() => handleOpenDispute(order._id)}
-                                className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition flex items-center"
-                                title="Reportar Problema"
-                              >
-                                <Shield className="w-3 h-3 mr-1" />
-                                Reclamo
-                              </button>
-                            )}
-                            {user.role === 'admin' && order.disputeStatus === 'open' && (
-                              <div className="flex space-x-1">
-                                <button
-                                  onClick={() => handleResolveDispute(order._id, 'release_funds')}
-                                  className="text-[10px] bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition"
-                                >
-                                  Liberar $
-                                </button>
-                                <button
-                                  onClick={() => handleResolveDispute(order._id, 'refund')}
-                                  className="text-[10px] bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 transition"
-                                >
-                                  Reembolsar
-                                </button>
+                    {recentOrders
+                      .filter(o =>
+                        o._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        o.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        o.shippingAddress?.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                      .map((order) => (
+                        <tr key={order._id}>
+                          <td className="px-6 py-4 font-medium">#{order._id.slice(-6).toUpperCase()}</td>
+                          <td className="px-6 py-4 text-gray-500">
+                            {order.user?.name || 'Guest'}
+                          </td>
+                          <td className="px-6 py-4 text-xs">
+                            {order.status === 'paid' ? (
+                              <div className="text-indigo-600 font-medium italic">
+                                {order.shippingAddress || 'No address provided'}
                               </div>
+                            ) : (
+                              <span className="text-gray-400">Hidden until paid</span>
                             )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${order.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{order.status}</span></td>
+                          <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex space-x-2">
+                              {order.status === 'paid' && (
+                                <button
+                                  onClick={() => handleUpdateOrderStatus(order._id, 'shipped')}
+                                  className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition"
+                                  title="Marcar como enviado"
+                                >
+                                  Marcar Enviado
+                                </button>
+                              )}
+                              {order.status === 'shipped' && order.user?._id === (user._id || user.userId) && (
+                                <button
+                                  onClick={() => handleUpdateOrderStatus(order._id, 'delivered')}
+                                  className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transition"
+                                  title="Confirmar recepción"
+                                >
+                                  Confirmar Recibo
+                                </button>
+                              )}
+                              {(order.status === 'paid' || order.status === 'shipped' || order.status === 'delivered') && (
+                                <button
+                                  onClick={() => openChat(order)}
+                                  className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition flex items-center"
+                                  title="Abrir Chat"
+                                >
+                                  <MessageSquare className="w-3 h-3 mr-1" />
+                                  Chat
+                                </button>
+                              )}
+                              {order.status === 'paid' && order.user?._id === (user._id || user.userId) && order.disputeStatus === 'none' && (
+                                <button
+                                  onClick={() => handleOpenDispute(order._id)}
+                                  className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition flex items-center"
+                                  title="Reportar Problema"
+                                >
+                                  <Shield className="w-3 h-3 mr-1" />
+                                  Reclamo
+                                </button>
+                              )}
+                              {user.role === 'admin' && order.disputeStatus === 'open' && (
+                                <div className="flex space-x-1">
+                                  <button
+                                    onClick={() => handleResolveDispute(order._id, 'release_funds')}
+                                    className="text-[10px] bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition"
+                                  >
+                                    Liberar $
+                                  </button>
+                                  <button
+                                    onClick={() => handleResolveDispute(order._id, 'refund')}
+                                    className="text-[10px] bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 transition"
+                                  >
+                                    Reembolsar
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                     {recentOrders.length === 0 && <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500">No orders found.</td></tr>}
                   </tbody>
                 </table>
@@ -502,23 +522,29 @@ const Dashboard = ({ user }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myProducts.map(product => (
-                <div key={product._id} className="bg-white rounded-xl shadow overflow-hidden flex flex-col">
-                  <img src={product.image} alt={product.name} className="h-48 w-full object-cover" />
-                  <div className="p-4 flex-1">
-                    <h3 className="font-bold text-lg text-gray-900">{product.name}</h3>
-                    <p className="text-gray-500 text-sm mb-2">{product.company}</p>
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="font-bold text-indigo-600">{formatPrice(product.price)}</span>
-                      <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Stock: {product.inventory}</span>
+              {myProducts
+                .filter(p =>
+                  p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  p.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  p.category.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map(product => (
+                  <div key={product._id} className="bg-white rounded-xl shadow overflow-hidden flex flex-col">
+                    <img src={product.image} alt={product.name} className="h-48 w-full object-cover" />
+                    <div className="p-4 flex-1">
+                      <h3 className="font-bold text-lg text-gray-900">{product.name}</h3>
+                      <p className="text-gray-500 text-sm mb-2">{product.company}</p>
+                      <div className="flex justify-between items-center mt-4">
+                        <span className="font-bold text-indigo-600">{formatPrice(product.price)}</span>
+                        <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Stock: {product.inventory}</span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 px-4 py-3 flex justify-end space-x-3 border-t border-gray-100">
+                      <button onClick={() => openEditModal(product)} className="text-blue-600 hover:text-blue-800"><Edit className="w-5 h-5" /></button>
+                      <button onClick={() => handleDeleteProduct(product._id)} className="text-red-600 hover:text-red-800"><Trash2 className="w-5 h-5" /></button>
                     </div>
                   </div>
-                  <div className="bg-gray-50 px-4 py-3 flex justify-end space-x-3 border-t border-gray-100">
-                    <button onClick={() => openEditModal(product)} className="text-blue-600 hover:text-blue-800"><Edit className="w-5 h-5" /></button>
-                    <button onClick={() => handleDeleteProduct(product._id)} className="text-red-600 hover:text-red-800"><Trash2 className="w-5 h-5" /></button>
-                  </div>
-                </div>
-              ))}
+                ))}
               {myProducts.length === 0 && (
                 <div className="col-span-full text-center py-20 text-gray-500">
                   <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -579,49 +605,55 @@ const Dashboard = ({ user }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {allUsers.map(u => (
-                    <tr key={u._id}>
-                      <td className="px-6 py-4 font-medium">{u.name}</td>
-                      <td className="px-6 py-4 text-gray-500">{u.email}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${u.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleToggleVerify(u._id)}
-                          className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${u.isVerifiedSeller ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'}`}
-                        >
-                          <Shield className="w-3 h-3" />
-                          <span>{u.isVerifiedSeller ? 'Verified' : 'Unverified'}</span>
-                        </button>
-                      </td>
-                      <td className="px-6 py-4">
-                        {user.role === 'admin' && (
-                          <select
-                            value={u.role}
-                            onChange={(e) => handleRoleChange(u._id, e.target.value)}
-                            className="text-sm border-gray-300 rounded p-1"
-                          >
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        {user.role === 'admin' && u._id !== (user._id || user.userId) && (
+                  {allUsers
+                    .filter(u =>
+                      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      u.role.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map(u => (
+                      <tr key={u._id}>
+                        <td className="px-6 py-4 font-medium">{u.name}</td>
+                        <td className="px-6 py-4 text-gray-500">{u.email}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${u.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
                           <button
-                            onClick={() => handleDeleteUser(u._id)}
-                            className="text-red-600 hover:text-red-900 transition-colors"
-                            title="Delete User"
+                            onClick={() => handleToggleVerify(u._id)}
+                            className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${u.isVerifiedSeller ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'}`}
                           >
-                            <Trash2 className="w-5 h-5" />
+                            <Shield className="w-3 h-3" />
+                            <span>{u.isVerifiedSeller ? 'Verified' : 'Unverified'}</span>
                           </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4">
+                          {user.role === 'admin' && (
+                            <select
+                              value={u.role}
+                              onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                              className="text-sm border-gray-300 rounded p-1"
+                            >
+                              <option value="user">User</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {user.role === 'admin' && u._id !== (user._id || user.userId) && (
+                            <button
+                              onClick={() => handleDeleteUser(u._id)}
+                              className="text-red-600 hover:text-red-900 transition-colors"
+                              title="Delete User"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -635,24 +667,31 @@ const Dashboard = ({ user }) => {
               <h1 className="text-3xl font-bold text-gray-900">Manage All Products</h1>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allGlobalProducts.map(product => (
-                <div key={product._id} className="bg-white rounded-xl shadow overflow-hidden flex flex-col">
-                  <img src={product.image} alt={product.name} className="h-48 w-full object-cover" />
-                  <div className="p-4 flex-1">
-                    <h3 className="font-bold text-lg text-gray-900">{product.name}</h3>
-                    <p className="text-gray-500 text-sm mb-1">{product.company} / {product.category}</p>
-                    <p className="text-xs text-indigo-600 mb-2">Seller ID: {product.user}</p>
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="font-bold text-indigo-600">{formatPrice(product.price)}</span>
-                      <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Stock: {product.inventory}</span>
+              {allGlobalProducts
+                .filter(p =>
+                  p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  p.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  p.user.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map(product => (
+                  <div key={product._id} className="bg-white rounded-xl shadow overflow-hidden flex flex-col">
+                    <img src={product.image} alt={product.name} className="h-48 w-full object-cover" />
+                    <div className="p-4 flex-1">
+                      <h3 className="font-bold text-lg text-gray-900">{product.name}</h3>
+                      <p className="text-gray-500 text-sm mb-1">{product.company} / {product.category}</p>
+                      <p className="text-xs text-indigo-600 mb-2">Seller ID: {product.user}</p>
+                      <div className="flex justify-between items-center mt-4">
+                        <span className="font-bold text-indigo-600">{formatPrice(product.price)}</span>
+                        <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Stock: {product.inventory}</span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 px-4 py-3 flex justify-end space-x-3 border-t border-gray-100">
+                      <button onClick={() => openEditModal(product)} className="text-blue-600 hover:text-blue-800"><Edit className="w-5 h-5" /></button>
+                      <button onClick={() => handleDeleteProduct(product._id)} className="text-red-600 hover:text-red-800"><Trash2 className="w-5 h-5" /></button>
                     </div>
                   </div>
-                  <div className="bg-gray-50 px-4 py-3 flex justify-end space-x-3 border-t border-gray-100">
-                    <button onClick={() => openEditModal(product)} className="text-blue-600 hover:text-blue-800"><Edit className="w-5 h-5" /></button>
-                    <button onClick={() => handleDeleteProduct(product._id)} className="text-red-600 hover:text-red-800"><Trash2 className="w-5 h-5" /></button>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         )}
