@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { apiFetch } from '../api';
-import { Users, ShoppingBag, DollarSign, Activity, X, Plus, Trash2, Edit, Shield, Package, Lock, Menu, ChevronLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Users, ShoppingBag, DollarSign, Activity, X, Plus, Trash2, Edit, Shield, Package, Lock, Menu, ChevronLeft, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
@@ -304,6 +304,26 @@ const Dashboard = ({ user }) => {
         {activeTab === 'overview' && (
           <div className="space-y-8">
             <h1 className="text-3xl font-bold text-gray-900">{t('common.dashboard_overview')}</h1>
+
+            {/* Incomplete Profile Alert */}
+            {(!user.dni || !user.phone) && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm flex items-center justify-between"
+              >
+                <div className="flex items-center">
+                  <Shield className="w-6 h-6 text-amber-600 mr-3" />
+                  <div>
+                    <p className="text-amber-800 font-bold">Verificación de Identidad Incompleta</p>
+                    <p className="text-amber-700 text-sm">Captura tu DNI y Teléfono en tu perfil para aumentar la confianza y seguridad de tus transacciones.</p>
+                  </div>
+                </div>
+                <Link to="/profile" className="px-4 py-2 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors">
+                  Completar Perfil
+                </Link>
+              </motion.div>
+            )}
 
             {/* Administrative Alerts for Commission */}
             {user.role === 'admin' && recentOrders.some(o => o.status === 'paid' && !o.isAdminNotified) && (
