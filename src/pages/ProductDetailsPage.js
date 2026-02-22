@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { addToCart, getCartKey } from '../utils/cart';
@@ -18,7 +18,7 @@ const ProductDetailsPage = ({ user }) => {
 
     const cartKey = useMemo(() => getCartKey(user), [user]);
 
-    const fetchProduct = async () => {
+    const fetchProduct = useCallback(async () => {
         try {
             const data = await apiFetch(`/products/${id}`);
             setProduct(data.product);
@@ -27,11 +27,11 @@ const ProductDetailsPage = ({ user }) => {
             setError(err.message);
             setLoading(false);
         }
-    };
+    }, [id]);
 
     useEffect(() => {
         fetchProduct();
-    }, [id]);
+    }, [fetchProduct]);
 
     const handleAddToCart = () => {
         if (!product) return;

@@ -1,17 +1,17 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export const useWallet = () => {
     const [account, setAccount] = useState(null);
     const [error, setError] = useState(null);
 
-    const getEthereumProvider = () => {
+    const getEthereumProvider = useCallback(() => {
         const { ethereum } = window;
         if (ethereum && ethereum.isMetaMask) return ethereum;
         return null;
-    };
+    }, []);
 
-    const checkIfWalletIsConnected = async () => {
+    const checkIfWalletIsConnected = useCallback(async () => {
         const ethereum = getEthereumProvider();
         if (!ethereum) return;
 
@@ -23,7 +23,7 @@ export const useWallet = () => {
         } catch (error) {
             console.error("Wallet check error:", error);
         }
-    };
+    }, [getEthereumProvider]);
 
     const connectWallet = async () => {
         const ethereum = getEthereumProvider();
@@ -47,13 +47,18 @@ export const useWallet = () => {
 
         const ethereum = getEthereumProvider();
         if (ethereum) {
-            ethereum.on('accountsChanged', (accounts) => {
+            const handleAccounts = (accounts) => {
                 setAccount(accounts[0] || null);
-            });
+            };
+            ethereum.on('accountsChanged', handleAccounts);
+            return () => {
+                clearTimeout(timeout);
+                ethereum.removeListener('accountsChanged', handleAccounts);
+            };
         }
 
         return () => clearTimeout(timeout);
-    }, []);
+    }, [checkIfWalletIsConnected, getEthereumProvider]);
 
     return { account, connectWallet, error };
 };
