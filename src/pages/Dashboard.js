@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { apiFetch } from '../api';
 import { Link } from 'react-router-dom';
-import { Users, ShoppingBag, DollarSign, Activity, X, Plus, Trash2, Edit, Shield, Package, Lock, Menu, ChevronLeft } from 'lucide-react';
+import { Users, ShoppingBag, Search, DollarSign, Activity, X, Plus, Trash2, Edit, Shield, Package, Lock, Menu, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import ChatWindow from '../components/ChatWindow';
