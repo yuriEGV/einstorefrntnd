@@ -48,7 +48,10 @@ export const WalletProvider = ({ children }) => {
     }, []);
 
     useEffect(() => {
-        const timeout = setTimeout(checkIfWalletIsConnected, 1000);
+        // We disabled auto-polling on mount to prevent cross-user session leaks.
+        // The wallet should only connect when the user explicitly clicks "Connect".
+        // const timeout = setTimeout(checkIfWalletIsConnected, 1000);
+
         const ethereum = getEthereumProvider();
 
         if (ethereum) {
@@ -57,13 +60,13 @@ export const WalletProvider = ({ children }) => {
             };
             ethereum.on('accountsChanged', handleAccounts);
             return () => {
-                clearTimeout(timeout);
+                // clearTimeout(timeout);
                 ethereum.removeListener('accountsChanged', handleAccounts);
             };
         }
 
-        return () => clearTimeout(timeout);
-    }, [checkIfWalletIsConnected, getEthereumProvider]);
+        // return () => clearTimeout(timeout);
+    }, [getEthereumProvider]);
 
     return (
         <WalletContext.Provider value={{ account, connectWallet, disconnectWallet, error }}>

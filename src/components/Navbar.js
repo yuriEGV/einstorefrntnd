@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, Menu, X, Search, LogOut, Wallet, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../hooks/useWallet';
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
 
 const Navbar = ({ user, onLogout, cartItemCount }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { account, connectWallet, disconnectWallet } = useWallet();
   const { t, i18n } = useTranslation();
+
+  // Auto-close all menus when the URL changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setIsProfileOpen(false);
+    setIsLangOpen(false);
+  }, [location.pathname]);
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
