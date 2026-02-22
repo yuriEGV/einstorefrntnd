@@ -11,6 +11,7 @@ import { getCartKey, writeCart, getCartCount } from './utils/cart';
 import CheckoutPage from './pages/CheckoutPage';
 import CategoriesPage from './pages/CategoriesPage';
 import ProfilePage from './pages/ProfilePage';
+import ProductDetailsPage from './pages/ProductDetailsPage';
 import HomePage from './pages/HomePage';
 import Success from './pages/Success';
 import PaymentStatus from './pages/PaymentStatus';
@@ -95,6 +96,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage user={user} />} />
           <Route path="/products" element={<ProductsPage user={user} />} />
+          <Route path="/products/:id" element={<ProductDetailsPage user={user} />} />
           <Route path="/login" element={<LoginPage setUser={setUser} />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/register" element={<RegisterPage setUser={setUser} />} />

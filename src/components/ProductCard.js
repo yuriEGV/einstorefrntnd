@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { ShoppingCart, Star } from 'lucide-react';
 import Price from './Price';
 
@@ -40,16 +41,17 @@ const ProductCard = ({ product, onAddToCart }) => {
                             {product.category}
                         </span>
                     )}
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 leading-tight hover:text-indigo-600 cursor-pointer truncate">
-                        {product.name}
-                    </h3>
+                    <Link to={`/products/${product._id}`}>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 leading-tight hover:text-indigo-600 cursor-pointer truncate">
+                            {product.name}
+                        </h3>
+                    </Link>
                     <div className="flex items-center mb-4">
                         <div className="flex text-yellow-400">
-                            {[...Array(5)].map((_, i) => (
-                                <Star key={i} className={`w-4 h-4 ${i < (product.rating || 4) ? 'fill-current' : 'text-gray-300'}`} />
-                            ))}
+                            <Star className="w-4 h-4 fill-current" />
+                            <span className="text-xs font-bold text-gray-900 ml-1">{(product.averageRating || 4.5).toFixed(1)}</span>
                         </div>
-                        <span className="text-xs text-gray-500 ml-2">({product.numReviews || 12} reviews)</span>
+                        <span className="text-xs text-gray-500 ml-2">({product.numOfReviews || 12} reviews)</span>
                     </div>
                 </div>
 
