@@ -5,7 +5,7 @@ import { Users, ShoppingBag, DollarSign, Activity, X, Plus, Trash2, Edit, Shield
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import ChatWindow from '../components/ChatWindow';
-import { MessageSquare, Gavel } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 
 const Dashboard = ({ user }) => {
   const { t } = useTranslation();
@@ -424,6 +424,24 @@ const Dashboard = ({ user }) => {
                         <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-2">
+                            {order.status === 'paid' && (
+                              <button
+                                onClick={() => handleUpdateOrderStatus(order._id, 'shipped')}
+                                className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition"
+                                title="Marcar como enviado"
+                              >
+                                Marcar Enviado
+                              </button>
+                            )}
+                            {order.status === 'shipped' && order.user?._id === (user._id || user.userId) && (
+                              <button
+                                onClick={() => handleUpdateOrderStatus(order._id, 'delivered')}
+                                className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transition"
+                                title="Confirmar recepción"
+                              >
+                                Confirmar Recibo
+                              </button>
+                            )}
                             {(order.status === 'paid' || order.status === 'shipped' || order.status === 'delivered') && (
                               <button
                                 onClick={() => openChat(order)}

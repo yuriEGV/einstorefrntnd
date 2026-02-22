@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { apiFetch } from '../api';
 import { Send, Image as ImageIcon, ShieldAlert, Lock, User, CheckCircle2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const ChatWindow = ({ orderId, currentUser, isBlocked, disputeStatus }) => {
     const [messages, setMessages] = useState([]);
@@ -14,7 +14,7 @@ const ChatWindow = ({ orderId, currentUser, isBlocked, disputeStatus }) => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const fetchMessages = async () => {
+    const fetchMessages = useCallback(async () => {
         try {
             const data = await apiFetch(`/messages/${orderId}`);
             setMessages(data.messages);
@@ -22,13 +22,13 @@ const ChatWindow = ({ orderId, currentUser, isBlocked, disputeStatus }) => {
         } catch (error) {
             console.error('Error fetching messages:', error);
         }
-    };
+    }, [orderId]);
 
     useEffect(() => {
         fetchMessages();
         const interval = setInterval(fetchMessages, 5000); // Poll every 5 seconds
         return () => clearInterval(interval);
-    }, [orderId]);
+    }, [fetchMessages]);
 
     useEffect(scrollToBottom, [messages]);
 
@@ -95,8 +95,8 @@ const ChatWindow = ({ orderId, currentUser, isBlocked, disputeStatus }) => {
                             >
                                 <div
                                     className={`max-w-[80%] p-3 rounded-2xl text-sm shadow-sm ${isMe
-                                            ? 'bg-indigo-600 text-white rounded-tr-none'
-                                            : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
+                                        ? 'bg-indigo-600 text-white rounded-tr-none'
+                                        : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
                                         }`}
                                 >
                                     <p>{msg.content}</p>
