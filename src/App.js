@@ -18,12 +18,16 @@ import PaymentStatus from './pages/PaymentStatus';
 import Dashboard from './pages/Dashboard';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import MainLayout from './layout/MainLayout';
+import { WalletProvider, useWalletContext } from './context/WalletContext';
 import './i18n'; // Import i18n config
 
-function App() {
+function AppContent() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cartItemCount, setCartItemCount] = useState(0);
+  const { disconnectWallet } = useWalletContext();
+
+  // ... (rest of App component logic)
 
   // Helper to update cart count
   const updateCount = (userId) => {
@@ -76,6 +80,7 @@ function App() {
       } catch (err) {
         // ignore
       }
+      disconnectWallet(); // CLEAR GLOBAL WALLET SESSION
       setUser(null);
       // redirect to home for clarity
       window.location.assign('/');
@@ -112,6 +117,14 @@ function App() {
         </Routes>
       </MainLayout>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <WalletProvider>
+      <AppContent />
+    </WalletProvider>
   );
 }
 

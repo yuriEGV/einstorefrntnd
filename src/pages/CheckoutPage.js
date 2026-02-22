@@ -32,9 +32,8 @@ const CheckoutPage = ({ user }) => {
   }, [cartKey]);
 
   const total = cart.reduce((s, it) => s + it.price * it.qty, 0);
-  const tax = total * 0.19; // Example tax 19%
-  const shipping = total > 500 ? 0 : 10; // Example shipping rule
-  const finalTotal = total + tax + shipping;
+  const serviceFee = total * 0.10; // 10% Platform / Transaction fee
+  const finalTotal = total + serviceFee;
 
   const handleCreateOrder = async () => {
     if (!cart.length) return alert(t('checkout.empty_cart'));
@@ -45,8 +44,8 @@ const CheckoutPage = ({ user }) => {
 
       const body = {
         items: payloadItems,
-        tax: tax,
-        shippingFee: shipping,
+        tax: 0,
+        shippingFee: serviceFee, // Map platform fee to shippingFee field for backend compatibility
         shippingAddress: address
       };
 
@@ -113,12 +112,8 @@ const CheckoutPage = ({ user }) => {
                   <dd className="text-sm font-medium text-gray-900">{formatPrice(total)}</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-sm text-gray-600">{t('checkout.shipping')}</dt>
-                  <dd className="text-sm font-medium text-gray-900">{formatPrice(shipping)}</dd>
-                </div>
-                <div className="flex items-center justify-between">
-                  <dt className="text-sm text-gray-600">{t('checkout.taxes')}</dt>
-                  <dd className="text-sm font-medium text-gray-900">{formatPrice(tax)}</dd>
+                  <dt className="text-sm text-gray-600">Comisión de Gestión (Platform Fee)</dt>
+                  <dd className="text-sm font-medium text-gray-900">{formatPrice(serviceFee)}</dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-6">
                   <dt className="text-base font-bold text-gray-900">{t('checkout.total')}</dt>
@@ -134,18 +129,18 @@ const CheckoutPage = ({ user }) => {
             {/* Order Summary */}
             <div className="bg-white p-6 rounded-2xl shadow-md space-y-4 mb-6">
               <h2 className="text-xl font-bold flex items-center">
-                <Package className="w-5 h-5 mr-2 text-indigo-600" />
-                Datos de Envío (Dropshipping)
+                <ShieldCheck className="w-5 h-5 mr-2 text-indigo-600" />
+                Transacción Protegida (P2P)
               </h2>
               <textarea
                 required
-                placeholder="Ingresa tu dirección completa de envío..."
+                placeholder="Ingresa tu dirección para coordinar con el vendedor..."
                 className="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500 resize-none h-24 border"
                 value={address}
                 onChange={e => setAddress(e.target.value)}
               ></textarea>
               <p className="text-xs text-gray-500 italic">
-                Nota: Tu pedido será gestionado directamente por nuestros proveedores verificados.
+                Nota: Einstore no gestiona la logística de envío. El vendedor se contactará contigo para coordinar la entrega.
               </p>
             </div>
 

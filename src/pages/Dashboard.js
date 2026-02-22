@@ -234,6 +234,18 @@ const Dashboard = ({ user }) => {
     }
   };
 
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await apiFetch(`/orders/${orderId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus })
+      });
+      fetchDashboardData(); // Refresh everything
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
 
   if (!user) return <div className="min-h-screen flex justify-center items-center text-red-500 font-bold">{t('common.please_login')}</div>;
 
@@ -334,6 +346,7 @@ const Dashboard = ({ user }) => {
                       <th className="px-6 py-3">Shipping Info</th>
                       <th className="px-6 py-3">Status</th>
                       <th className="px-6 py-3">Total</th>
+                      <th className="px-6 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -354,9 +367,31 @@ const Dashboard = ({ user }) => {
                         </td>
                         <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${order.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{order.status}</span></td>
                         <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-2">
+                            {order.status === 'paid' && (
+                              <button
+                                onClick={() => handleUpdateOrderStatus(order._id, 'shipped')}
+                                className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition"
+                                title="Marcar como enviado"
+                              >
+                                Marcar Enviado
+                              </button>
+                            )}
+                            {order.status === 'shipped' && order.user?._id === (user._id || user.userId) && (
+                              <button
+                                onClick={() => handleUpdateOrderStatus(order._id, 'delivered')}
+                                className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transition"
+                                title="Confirmar recepción"
+                              >
+                                Confirmar Recibo
+                              </button>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     ))}
-                    {recentOrders.length === 0 && <tr><td colSpan="4" className="px-6 py-4 text-center text-gray-500">No orders found.</td></tr>}
+                    {recentOrders.length === 0 && <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500">No orders found.</td></tr>}
                   </tbody>
                 </table>
               </div>
