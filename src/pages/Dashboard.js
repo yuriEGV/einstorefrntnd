@@ -240,7 +240,8 @@ const Dashboard = ({ user }) => {
         method: 'PATCH',
         body: JSON.stringify({ status: newStatus })
       });
-      fetchDashboardData(); // Refresh everything
+      fetchMyOrders();
+      fetchAdminStats();
     } catch (error) {
       alert(error.message);
     }
