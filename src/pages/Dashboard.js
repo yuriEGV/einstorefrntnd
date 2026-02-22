@@ -6,6 +6,15 @@ import { useTranslation } from 'react-i18next';
 
 const Dashboard = ({ user }) => {
   const { t } = useTranslation();
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price || 0);
+  };
+
   const [stats, setStats] = useState({
     users: 0,
     products: 0,
@@ -286,9 +295,9 @@ const Dashboard = ({ user }) => {
               {user.role === 'admin' && <StatCard icon={<Users className="w-8 h-8 text-blue-600" />} title={t('common.total_users')} value={stats.users} color="bg-blue-100" />}
               <StatCard icon={<ShoppingBag className="w-8 h-8 text-purple-600" />} title={user.role === 'admin' ? t('common.total_products') : 'Mis Productos'} value={stats.products} color="bg-purple-100" />
               <StatCard icon={<Activity className="w-8 h-8 text-green-600" />} title={user.role === 'admin' ? t('common.total_orders') : 'Mis Ventas'} value={stats.orders} color="bg-green-100" />
-              {user.role === 'admin' && <StatCard icon={<DollarSign className="w-8 h-8 text-yellow-600" />} title={t('common.revenue')} value={`$${(stats.revenue || 0).toLocaleString()}`} color="bg-yellow-100" />}
-              {user.role === 'admin' && <StatCard icon={<DollarSign className="w-8 h-8 text-emerald-600" />} title="Plataforma Profit" value={`$${(stats.profit || 0).toLocaleString()}`} color="bg-emerald-100" />}
-              <StatCard icon={<DollarSign className="w-8 h-8 text-indigo-600" />} title="Mis Ganancias (Net)" value={`$${(stats.sellerEarnings || 0).toLocaleString()}`} color="bg-indigo-100" />
+              {user.role === 'admin' && <StatCard icon={<DollarSign className="w-8 h-8 text-yellow-600" />} title={t('common.revenue')} value={formatPrice(stats.revenue)} color="bg-yellow-100" />}
+              {user.role === 'admin' && <StatCard icon={<DollarSign className="w-8 h-8 text-emerald-600" />} title="Plataforma Profit" value={formatPrice(stats.profit)} color="bg-emerald-100" />}
+              <StatCard icon={<DollarSign className="w-8 h-8 text-indigo-600" />} title="Mis Ganancias (Net)" value={formatPrice(stats.sellerEarnings)} color="bg-indigo-100" />
             </div>
 
             <div className="bg-white rounded-xl shadow p-6">
@@ -309,7 +318,7 @@ const Dashboard = ({ user }) => {
                         <td className="px-6 py-4 font-medium">#{order._id.slice(-6).toUpperCase()}</td>
                         <td className="px-6 py-4 text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                         <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${order.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{order.status}</span></td>
-                        <td className="px-6 py-4 font-bold">${order.total}</td>
+                        <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
                       </tr>
                     ))}
                     {recentOrders.length === 0 && <tr><td colSpan="4" className="px-6 py-4 text-center text-gray-500">No orders found.</td></tr>}
@@ -339,7 +348,7 @@ const Dashboard = ({ user }) => {
                     <h3 className="font-bold text-lg text-gray-900">{product.name}</h3>
                     <p className="text-gray-500 text-sm mb-2">{product.company}</p>
                     <div className="flex justify-between items-center mt-4">
-                      <span className="font-bold text-indigo-600">${product.price}</span>
+                      <span className="font-bold text-indigo-600">{formatPrice(product.price)}</span>
                       <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Stock: {product.inventory}</span>
                     </div>
                   </div>
@@ -463,7 +472,7 @@ const Dashboard = ({ user }) => {
                     <p className="text-gray-500 text-sm mb-1">{product.company} / {product.category}</p>
                     <p className="text-xs text-indigo-600 mb-2">Seller ID: {product.user}</p>
                     <div className="flex justify-between items-center mt-4">
-                      <span className="font-bold text-indigo-600">${product.price}</span>
+                      <span className="font-bold text-indigo-600">{formatPrice(product.price)}</span>
                       <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">Stock: {product.inventory}</span>
                     </div>
                   </div>

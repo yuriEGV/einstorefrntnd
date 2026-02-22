@@ -17,6 +17,15 @@ const CheckoutPage = ({ user }) => {
   const [preferenceId, setPreferenceId] = useState(null);
   const navigate = useNavigate();
 
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price || 0);
+  };
+
   useEffect(() => {
     setCart(readCart(cartKey));
   }, [cartKey]);
@@ -90,7 +99,7 @@ const CheckoutPage = ({ user }) => {
                         </div>
                       </div>
                       <div className="flex-1 pt-2 flex items-end justify-between">
-                        <p className="mt-1 text-sm font-medium text-gray-900">${item.price}</p>
+                        <p className="mt-1 text-sm font-medium text-gray-900">{formatPrice(item.price)}</p>
                         <p className="mt-1 text-sm text-gray-500">Qty {item.qty}</p>
                       </div>
                     </div>
@@ -100,19 +109,19 @@ const CheckoutPage = ({ user }) => {
               <dl className="border-t border-gray-200 py-6 px-4 space-y-6 sm:px-6">
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-gray-600">{t('checkout.subtotal')}</dt>
-                  <dd className="text-sm font-medium text-gray-900">${total.toFixed(2)}</dd>
+                  <dd className="text-sm font-medium text-gray-900">{formatPrice(total)}</dd>
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-gray-600">{t('checkout.shipping')}</dt>
-                  <dd className="text-sm font-medium text-gray-900">${shipping.toFixed(2)}</dd>
+                  <dd className="text-sm font-medium text-gray-900">{formatPrice(shipping)}</dd>
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-gray-600">{t('checkout.taxes')}</dt>
-                  <dd className="text-sm font-medium text-gray-900">${tax.toFixed(2)}</dd>
+                  <dd className="text-sm font-medium text-gray-900">{formatPrice(tax)}</dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-6">
                   <dt className="text-base font-bold text-gray-900">{t('checkout.total')}</dt>
-                  <dd className="text-base font-bold text-gray-900">${finalTotal.toFixed(2)}</dd>
+                  <dd className="text-base font-bold text-gray-900">{formatPrice(finalTotal)}</dd>
                 </div>
               </dl>
             </div>
@@ -135,7 +144,7 @@ const CheckoutPage = ({ user }) => {
                     disabled={status === 'creating'}
                     className="w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                   >
-                    {status === 'creating' ? t('checkout.processing') : `${t('checkout.pay')} $${finalTotal.toFixed(2)}`}
+                    {status === 'creating' ? t('checkout.processing') : `${t('checkout.pay')} ${formatPrice(finalTotal)}`}
                   </button>
                 ) : null}
 

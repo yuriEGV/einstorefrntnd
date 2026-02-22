@@ -8,6 +8,15 @@ const CartPage = ({ user }) => {
   const cartKey = useMemo(() => getCartKey(user), [user]);
   const [cart, setCartState] = useState([]);
 
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price || 0);
+  };
+
   useEffect(() => {
     setCartState(readCart(cartKey));
 
@@ -90,7 +99,7 @@ const CartPage = ({ user }) => {
                         <div className="mt-1 flex text-sm">
                           <p className="text-gray-500">{item.company}</p>
                         </div>
-                        <p className="mt-1 text-sm font-medium text-gray-900">${item.price}</p>
+                        <p className="mt-1 text-sm font-medium text-gray-900">{formatPrice(item.price)}</p>
                       </div>
 
                       <div className="mt-4 sm:mt-0 sm:pr-9">
@@ -140,23 +149,23 @@ const CartPage = ({ user }) => {
             <dl className="mt-6 space-y-4">
               <div className="flex items-center justify-between">
                 <dt className="text-sm text-gray-600">Subtotal</dt>
-                <dd className="text-sm font-medium text-gray-900">${total.toFixed(2)}</dd>
+                <dd className="text-sm font-medium text-gray-900">{formatPrice(total)}</dd>
               </div>
               <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                 <dt className="flex items-center text-sm text-gray-600">
                   <span>Shipping estimate</span>
                 </dt>
-                <dd className="text-sm font-medium text-gray-900">$0.00</dd>
+                <dd className="text-sm font-medium text-gray-900">{formatPrice(0)}</dd>
               </div>
               <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                 <dt className="flex text-sm text-gray-600">
                   <span>Tax estimate</span>
                 </dt>
-                <dd className="text-sm font-medium text-gray-900">$0.00</dd>
+                <dd className="text-sm font-medium text-gray-900">{formatPrice(0)}</dd>
               </div>
               <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                 <dt className="text-base font-bold text-gray-900">Order total</dt>
-                <dd className="text-base font-bold text-gray-900">${total.toFixed(2)}</dd>
+                <dd className="text-base font-bold text-gray-900">{formatPrice(total)}</dd>
               </div>
             </dl>
 
