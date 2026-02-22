@@ -74,10 +74,11 @@ const Dashboard = ({ user }) => {
   };
 
   const fetchMyOrders = useCallback(() => {
-    apiFetch('/orders/showAllMyOrders').then(data => {
+    const endpoint = user.role === 'admin' || user.role === 'user' ? '/orders/showAllMyOrders' : '/orders/showMySales';
+    apiFetch(endpoint).then(data => {
       if (data.orders) setRecentOrders(data.orders.slice(0, 5));
     }).catch(err => console.log(err));
-  }, []);
+  }, [user.role]);
 
   const fetchMyProducts = useCallback(() => {
     // Requires backend to support filtering by user or a dedicated endpoint
