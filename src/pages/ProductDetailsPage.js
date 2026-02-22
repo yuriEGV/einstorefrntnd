@@ -85,14 +85,20 @@ const ProductDetailsPage = ({ user }) => {
                                     <p className="text-indigo-600 font-semibold text-lg">{product.company}</p>
                                 </div>
                                 <div className="flex items-center bg-indigo-50 px-3 py-1 rounded-full">
-                                    <Star className="w-5 h-5 text-yellow-500 fill-current mr-1" />
-                                    <span className="font-bold text-indigo-700">{product.averageRating.toFixed(1)}</span>
                                     <span className="text-indigo-400 text-sm ml-1">({product.numOfReviews})</span>
                                 </div>
                             </div>
 
-                            <div className="text-3xl font-bold text-gray-900 mb-6">
-                                <Price amount={product.price} />
+                            <div className="flex items-center space-x-4 mb-6">
+                                <div className="text-3xl font-bold text-gray-900">
+                                    <Price amount={product.price} />
+                                </div>
+                                <button
+                                    onClick={() => document.getElementById('review-form')?.scrollIntoView({ behavior: 'smooth' })}
+                                    className="text-sm text-indigo-600 hover:underline font-medium"
+                                >
+                                    Escribir una reseña
+                                </button>
                             </div>
 
                             <p className="text-gray-600 text-lg leading-relaxed mb-8">
@@ -130,7 +136,7 @@ const ProductDetailsPage = ({ user }) => {
 
                     <div className="grid md:grid-cols-3 gap-12">
                         {/* Review Form */}
-                        <div className="md:col-span-1">
+                        <div className="md:col-span-1" id="review-form">
                             <div className="bg-white p-6 rounded-2xl shadow-md sticky top-24">
                                 <h3 className="text-xl font-bold mb-4">Escribir una reseña</h3>
                                 {user ? (

@@ -10,7 +10,7 @@ const Navbar = ({ user, onLogout, cartItemCount }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const navigate = useNavigate();
-  const { account, connectWallet } = useWallet();
+  const { account, connectWallet, disconnectWallet } = useWallet();
   const { t, i18n } = useTranslation();
 
   const changeLanguage = (lng) => {
@@ -112,12 +112,24 @@ const Navbar = ({ user, onLogout, cartItemCount }) => {
                       <Link to="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{t('nav.dashboard')}</Link>
                       <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{t('nav.profile')}</Link>
                       <button
-                        onClick={onLogout}
+                        onClick={() => {
+                          onLogout();
+                          disconnectWallet();
+                        }}
                         className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                       >
                         <LogOut className="w-4 h-4 mr-2" />
                         {t('nav.logout')}
                       </button>
+                      {account && (
+                        <button
+                          onClick={disconnectWallet}
+                          className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 border-t border-gray-100"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Disconnect Wallet
+                        </button>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>

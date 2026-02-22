@@ -56,8 +56,8 @@ const CheckoutPage = ({ user }) => {
         body: JSON.stringify(body)
       });
 
-      // 2. Use the clientSecret (init_point) returned by the backend
-      setPreferenceId(orderData.order.clientSecret);
+      // 2. Use the preferenceId returned by the backend
+      setPreferenceId(orderData.order.preferenceId);
       setStatus('ready');
     } catch (err) {
       setStatus('error');

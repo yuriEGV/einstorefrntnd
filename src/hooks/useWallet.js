@@ -41,6 +41,10 @@ export const useWallet = () => {
         }
     };
 
+    const disconnectWallet = () => {
+        setAccount(null);
+    };
+
     useEffect(() => {
         // Wait a bit for extension to inject
         const timeout = setTimeout(checkIfWalletIsConnected, 1000);
@@ -60,5 +64,5 @@ export const useWallet = () => {
         return () => clearTimeout(timeout);
     }, [checkIfWalletIsConnected, getEthereumProvider]);
 
-    return { account, connectWallet, error };
+    return { account, connectWallet, disconnectWallet, error };
 };
