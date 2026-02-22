@@ -215,6 +215,15 @@ const Dashboard = ({ user }) => {
     }
   };
 
+  const handleToggleVerify = async (userId) => {
+    try {
+      await apiFetch(`/users/toggle-verify/${userId}`, { method: 'PATCH' });
+      fetchAllUsers();
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
@@ -321,7 +330,8 @@ const Dashboard = ({ user }) => {
                   <thead>
                     <tr className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
                       <th className="px-6 py-3">Order ID</th>
-                      <th className="px-6 py-3">Date</th>
+                      <th className="px-6 py-3">Customer</th>
+                      <th className="px-6 py-3">Shipping Info</th>
                       <th className="px-6 py-3">Status</th>
                       <th className="px-6 py-3">Total</th>
                     </tr>
@@ -330,7 +340,18 @@ const Dashboard = ({ user }) => {
                     {recentOrders.map((order) => (
                       <tr key={order._id}>
                         <td className="px-6 py-4 font-medium">#{order._id.slice(-6).toUpperCase()}</td>
-                        <td className="px-6 py-4 text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
+                        <td className="px-6 py-4 text-gray-500">
+                          {order.user?.name || 'Guest'}
+                        </td>
+                        <td className="px-6 py-4 text-xs">
+                          {order.status === 'paid' ? (
+                            <div className="text-indigo-600 font-medium italic">
+                              {order.shippingAddress || 'No address provided'}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">Hidden until paid</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${order.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{order.status}</span></td>
                         <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
                       </tr>
@@ -427,6 +448,7 @@ const Dashboard = ({ user }) => {
                     <th className="px-6 py-3">Name</th>
                     <th className="px-6 py-3">Email</th>
                     <th className="px-6 py-3">Role</th>
+                    <th className="px-6 py-3">Verified Supplier</th>
                     <th className="px-6 py-3">Actions</th>
                   </tr>
                 </thead>
@@ -439,6 +461,15 @@ const Dashboard = ({ user }) => {
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${u.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>
                           {u.role}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleToggleVerify(u._id)}
+                          className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${u.isVerifiedSeller ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'}`}
+                        >
+                          <Shield className="w-3 h-3" />
+                          <span>{u.isVerifiedSeller ? 'Verified' : 'Unverified'}</span>
+                        </button>
                       </td>
                       <td className="px-6 py-4">
                         {user.role === 'admin' && (

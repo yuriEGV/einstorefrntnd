@@ -15,6 +15,7 @@ const CheckoutPage = ({ user }) => {
   const [cart, setCart] = useState(() => readCart(cartKey));
   const [status, setStatus] = useState('idle');
   const [preferenceId, setPreferenceId] = useState(null);
+  const [address, setAddress] = useState('');
   const navigate = useNavigate();
 
   const formatPrice = (price) => {
@@ -37,6 +38,7 @@ const CheckoutPage = ({ user }) => {
 
   const handleCreateOrder = async () => {
     if (!cart.length) return alert(t('checkout.empty_cart'));
+    if (!address.trim()) return alert(t('checkout.address_required')); // Added validation
     setStatus('creating');
     try {
       const payloadItems = cart.map(i => ({ product: i._id, amount: i.qty }));
@@ -44,19 +46,18 @@ const CheckoutPage = ({ user }) => {
       const body = {
         items: payloadItems,
         tax: tax,
-        shippingFee: shipping
+        shippingFee: shipping,
+        shippingAddress: address
       };
 
-      // 1. Create Order in Backend
-      const orderData = await apiFetch('/orders', { method: 'POST', body: JSON.stringify(body) });
-
-      // 2. Create MercadoPago Preference
-      const mpData = await apiFetch('/payments/mercadopago/create-preference', {
+      // 1. Create Order in Backend (Now includes Preference creation)
+      const orderData = await apiFetch('/orders', {
         method: 'POST',
-        body: JSON.stringify({ orderId: orderData.order._id })
+        body: JSON.stringify(body)
       });
 
-      setPreferenceId(mpData.id);
+      // 2. Use the clientSecret (init_point) returned by the backend
+      setPreferenceId(orderData.order.clientSecret);
       setStatus('ready');
     } catch (err) {
       setStatus('error');
@@ -130,6 +131,24 @@ const CheckoutPage = ({ user }) => {
           {/* Payment Section */}
           <div className="mt-10 lg:mt-0">
             <h2 className="text-lg font-medium text-gray-900 mb-4">{t('checkout.payment_details')}</h2>
+            {/* Order Summary */}
+            <div className="bg-white p-6 rounded-2xl shadow-md space-y-4 mb-6">
+              <h2 className="text-xl font-bold flex items-center">
+                <Package className="w-5 h-5 mr-2 text-indigo-600" />
+                Datos de Envío (Dropshipping)
+              </h2>
+              <textarea
+                required
+                placeholder="Ingresa tu dirección completa de envío..."
+                className="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500 resize-none h-24 border"
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+              ></textarea>
+              <p className="text-xs text-gray-500 italic">
+                Nota: Tu pedido será gestionado directamente por nuestros proveedores verificados.
+              </p>
+            </div>
+
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
 
               <div className="mb-6">

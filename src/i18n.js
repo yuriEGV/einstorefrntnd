@@ -78,7 +78,8 @@ const resources = {
                 mercadopago_msg: "Click below to pay with MercadoPago:",
                 redirect_msg: "You will be redirected to MercadoPago to complete your purchase.",
                 powered_mp: "Powered by MercadoPago",
-                blockchain_secured: "Blockchain Secured"
+                blockchain_secured: "Blockchain Secured",
+                address_required: "Shipping address is required"
             }
         }
     },
@@ -157,7 +158,8 @@ const resources = {
                 mercadopago_msg: "Haz clic abajo para pagar con MercadoPago:",
                 redirect_msg: "Serás redirigido a MercadoPago para completar tu compra.",
                 powered_mp: "Procesado por MercadoPago",
-                blockchain_secured: "Asegurado por Blockchain"
+                blockchain_secured: "Asegurado por Blockchain",
+                address_required: "La dirección de envío es obligatoria"
             }
         }
     }
