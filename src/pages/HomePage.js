@@ -35,6 +35,11 @@ const HomePage = ({ user }) => {
 
     return (
         <div className="bg-gray-50 min-h-screen pb-12">
+            {/* Subtle Policy Notice */}
+            <div className="bg-indigo-600 text-white py-2 px-4 text-center text-xs font-medium animate-pulse-slow">
+                <span className="opacity-90">🛡️ El dinero se liberará automáticamente tras 48 horas de la entrega si el comprador no presenta una queja.</span>
+            </div>
+
             <Hero user={user} />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
