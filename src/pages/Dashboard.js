@@ -119,7 +119,7 @@ const Dashboard = ({ user }) => {
     e.preventDefault();
     setProductLoading(true);
     try {
-      let imagePath = editingProduct ? editingProduct.image : '/uploads/example.jpeg';
+      let imagePath = editingProduct ? editingProduct.image : '/api/v1/products/image/example.jpeg';
 
       // 1. Upload media if exists
       if (mediaFile) {
