@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { Users, ShoppingBag, DollarSign, Activity, X, Plus, Trash2, Edit, Shield, Package, Lock, Menu, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import ChatWindow from '../components/ChatWindow';
+import { MessageSquare, Gavel } from 'lucide-react';
 
 const Dashboard = ({ user }) => {
   const { t } = useTranslation();
@@ -31,8 +33,10 @@ const Dashboard = ({ user }) => {
 
   // My Products State
   const [myProducts, setMyProducts] = useState([]);
-  const [showProductModal, setShowProductModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Replaces showProductModal
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedOrderForChat, setSelectedOrderForChat] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null); // Kept for product editing logic
   const [productForm, setProductForm] = useState({ name: '', price: '', category: 'electronics', company: 'otros', description: '', inventory: 10, image: null });
   const [mediaFile, setMediaFile] = useState(null);
   const [productLoading, setProductLoading] = useState(false);
@@ -142,7 +146,7 @@ const Dashboard = ({ user }) => {
 
       await apiFetch(url, { method, body: JSON.stringify(body) });
 
-      setShowProductModal(false);
+      setIsModalOpen(false); // Changed from setShowProductModal
       setEditingProduct(null);
       setMediaFile(null);
       fetchMyProducts(); // Refresh list
@@ -176,13 +180,13 @@ const Dashboard = ({ user }) => {
       inventory: product.inventory,
       image: product.image
     });
-    setShowProductModal(true);
+    setIsModalOpen(true); // Changed from setShowProductModal
   };
 
   const openNewModal = () => {
     setEditingProduct(null);
     setProductForm({ name: '', price: '', category: 'electronics', company: 'otros', description: '', inventory: 10, image: null });
-    setShowProductModal(true);
+    setIsModalOpen(true); // Changed from setShowProductModal
   }
 
   // --- Security Handlers ---
@@ -246,6 +250,35 @@ const Dashboard = ({ user }) => {
     } catch (error) {
       alert(error.message);
     }
+  };
+
+  const handleOpenDispute = async (orderId) => {
+    if (!window.confirm('¿Estás seguro de abrir una disputa? El chat se bloqueará para revisión del administrador.')) return;
+    try {
+      await apiFetch(`/orders/${orderId}/dispute`, { method: 'POST' });
+      alert('Disputa abierta. El administrador revisará el caso.');
+      fetchMyOrders(); // Refresh orders to show updated dispute status
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleResolveDispute = async (orderId, resolution) => {
+    try {
+      await apiFetch(`/orders/${orderId}/resolve`, {
+        method: 'PATCH',
+        body: JSON.stringify({ resolution }),
+      });
+      alert(`Disputa resuelta: ${resolution}`);
+      fetchMyOrders(); // Refresh orders to show updated dispute status
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const openChat = (order) => {
+    setSelectedOrderForChat(order);
+    setIsChatOpen(true);
   };
 
 
@@ -391,23 +424,41 @@ const Dashboard = ({ user }) => {
                         <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-2">
-                            {order.status === 'paid' && (
+                            {(order.status === 'paid' || order.status === 'shipped' || order.status === 'delivered') && (
                               <button
-                                onClick={() => handleUpdateOrderStatus(order._id, 'shipped')}
-                                className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition"
-                                title="Marcar como enviado"
+                                onClick={() => openChat(order)}
+                                className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition flex items-center"
+                                title="Abrir Chat"
                               >
-                                Marcar Enviado
+                                <MessageSquare className="w-3 h-3 mr-1" />
+                                Chat
                               </button>
                             )}
-                            {order.status === 'shipped' && order.user?._id === (user._id || user.userId) && (
+                            {order.status === 'paid' && order.user?._id === (user._id || user.userId) && order.disputeStatus === 'none' && (
                               <button
-                                onClick={() => handleUpdateOrderStatus(order._id, 'delivered')}
-                                className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 transition"
-                                title="Confirmar recepción"
+                                onClick={() => handleOpenDispute(order._id)}
+                                className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition flex items-center"
+                                title="Reportar Problema"
                               >
-                                Confirmar Recibo
+                                <Shield className="w-3 h-3 mr-1" />
+                                Reclamo
                               </button>
+                            )}
+                            {user.role === 'admin' && order.disputeStatus === 'open' && (
+                              <div className="flex space-x-1">
+                                <button
+                                  onClick={() => handleResolveDispute(order._id, 'release_funds')}
+                                  className="text-[10px] bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition"
+                                >
+                                  Liberar $
+                                </button>
+                                <button
+                                  onClick={() => handleResolveDispute(order._id, 'refund')}
+                                  className="text-[10px] bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 transition"
+                                >
+                                  Reembolsar
+                                </button>
+                              </div>
                             )}
                           </div>
                         </td>
@@ -591,12 +642,12 @@ const Dashboard = ({ user }) => {
 
       {/* Product Modal */}
       <AnimatePresence>
-        {showProductModal && (
+        {isModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold">{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
-                <button onClick={() => setShowProductModal(false)}><X className="w-6 h-6 text-gray-500" /></button>
+                <button onClick={() => setIsModalOpen(false)}><X className="w-6 h-6 text-gray-500" /></button>
               </div>
               <form onSubmit={handleProductSubmit} className="space-y-4">
                 <div>
@@ -655,7 +706,33 @@ const Dashboard = ({ user }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      {/* NEW: Chat Modal */}
+      <AnimatePresence>
+        {isChatOpen && selectedOrderForChat && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-2xl relative"
+            >
+              <button
+                onClick={() => setIsChatOpen(false)}
+                className="absolute -top-12 right-0 p-2 text-white bg-white/10 rounded-full hover:bg-white/20 transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <ChatWindow
+                orderId={selectedOrderForChat._id}
+                currentUser={user}
+                isBlocked={selectedOrderForChat.isChatBlocked}
+                disputeStatus={selectedOrderForChat.disputeStatus}
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div >
   );
 };
 
