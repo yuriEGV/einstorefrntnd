@@ -12,19 +12,7 @@ export const WalletProvider = ({ children }) => {
         return null;
     }, []);
 
-    const checkIfWalletIsConnected = useCallback(async () => {
-        const ethereum = getEthereumProvider();
-        if (!ethereum) return;
 
-        try {
-            const accounts = await ethereum.request({ method: 'eth_accounts' });
-            if (accounts.length !== 0) {
-                setAccount(accounts[0]);
-            }
-        } catch (error) {
-            console.error("Wallet check error:", error);
-        }
-    }, [getEthereumProvider]);
 
     const connectWallet = async () => {
         const ethereum = getEthereumProvider();

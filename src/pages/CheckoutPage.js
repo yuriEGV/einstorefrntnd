@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { getCartKey, readCart } from '../utils/cart';
 import { apiFetch } from '../api';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, CreditCard, Package } from 'lucide-react';
+import { ShieldCheck, CreditCard } from 'lucide-react';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { useTranslation } from 'react-i18next';
 
