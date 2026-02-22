@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch } from '../api';
 import { useTranslation } from 'react-i18next';
-import { User, Package, Clock } from 'lucide-react';
+import { User, Package, Clock, CreditCard } from 'lucide-react';
 
 const ProfilePage = ({ user }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [mpAccount, setMpAccount] = useState(user?.mercadoPagoAccount || '');
     const [wallet, setWallet] = useState(user?.cryptoWallet || '');
+    const [dni, setDni] = useState(user?.dni || '');
+    const [phone, setPhone] = useState(user?.phone || '');
     const { t } = useTranslation();
 
     const handleUpdateSettings = async (e) => {
@@ -15,7 +17,12 @@ const ProfilePage = ({ user }) => {
         try {
             await apiFetch('/users/updateUser', {
                 method: 'PATCH',
-                body: JSON.stringify({ mercadoPagoAccount: mpAccount, cryptoWallet: wallet })
+                body: JSON.stringify({
+                    mercadoPagoAccount: mpAccount,
+                    cryptoWallet: wallet,
+                    dni,
+                    phone
+                })
             });
             alert('Configuración guardada correctamente.');
         } catch (error) {
@@ -71,10 +78,41 @@ const ProfilePage = ({ user }) => {
                     </div>
                 </div>
 
+                {/* Identity Verification */}
+                <div className="bg-white shadow rounded-lg p-6 mb-8">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <User className="w-5 h-5 mr-2 text-indigo-600" />
+                        Verificación de Identidad
+                    </h2>
+                    <p className="text-sm text-gray-500 mb-6">Completa tu información de identidad para aumentar la confianza en la plataforma.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">DNI / RUT / ID</label>
+                            <input
+                                type="text"
+                                value={dni}
+                                onChange={(e) => setDni(e.target.value)}
+                                className="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
+                                placeholder="Ej: 12.345.678-9"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Teléfono de Contacto</label>
+                            <input
+                                type="text"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
+                                placeholder="Ej: +56 9 1234 5678"
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 {/* Payment Settings */}
                 <div className="bg-white shadow rounded-lg p-6 mb-8">
                     <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                        <User className="w-5 h-5 mr-2" />
+                        <CreditCard className="w-5 h-5 mr-2 text-indigo-600" />
                         Configuración de Pagos
                     </h2>
                     <form onSubmit={handleUpdateSettings} className="space-y-4">
