@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { apiFetch } from '../api';
 import { Send, Image as ImageIcon, ShieldAlert, Lock, User, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
