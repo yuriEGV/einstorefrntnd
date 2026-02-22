@@ -18,6 +18,8 @@ const ProfilePage = ({ user }) => {
             await apiFetch('/users/updateUser', {
                 method: 'PATCH',
                 body: JSON.stringify({
+                    name: user.name,
+                    email: user.email,
                     mercadoPagoAccount: mpAccount,
                     cryptoWallet: wallet,
                     dni,
