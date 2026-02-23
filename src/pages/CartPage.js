@@ -1,21 +1,20 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getCartKey, readCart, writeCart, } from '../utils/cart';
-import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag, AlertCircle } from 'lucide-react';
+import Price from '../components/Price';
 
 const CartPage = ({ user }) => {
   const navigate = useNavigate();
   const cartKey = useMemo(() => getCartKey(user), [user]);
   const [cart, setCartState] = useState([]);
+  const [currency, setCurrency] = useState(localStorage.getItem('einstore_currency') || 'CLP');
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price || 0);
-  };
+  useEffect(() => {
+    const handleCurrency = () => setCurrency(localStorage.getItem('einstore_currency') || 'CLP');
+    window.addEventListener('currencyChanged', handleCurrency);
+    return () => window.removeEventListener('currencyChanged', handleCurrency);
+  }, []);
 
   useEffect(() => {
     setCartState(readCart(cartKey));
@@ -99,7 +98,9 @@ const CartPage = ({ user }) => {
                         <div className="mt-1 flex text-sm">
                           <p className="text-gray-500">{item.company}</p>
                         </div>
-                        <p className="mt-1 text-sm font-medium text-gray-900">{formatPrice(item.price)}</p>
+                        <p className="mt-1 text-sm font-medium text-gray-900">
+                          <Price amount={item.price} />
+                        </p>
                       </div>
 
                       <div className="mt-4 sm:mt-0 sm:pr-9">
@@ -149,24 +150,33 @@ const CartPage = ({ user }) => {
             <dl className="mt-6 space-y-4">
               <div className="flex items-center justify-between">
                 <dt className="text-sm text-gray-600">Subtotal</dt>
-                <dd className="text-sm font-medium text-gray-900">{formatPrice(total)}</dd>
+                <dd className="text-sm font-medium text-gray-900"><Price amount={total} /></dd>
               </div>
               <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                 <dt className="flex items-center text-sm text-gray-600">
                   <span>Shipping estimate</span>
                 </dt>
-                <dd className="text-sm font-medium text-gray-900">{formatPrice(0)}</dd>
+                <dd className="text-sm font-medium text-gray-900"><Price amount={0} /></dd>
               </div>
               <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                 <dt className="flex text-sm text-gray-600">
                   <span>Tax estimate</span>
                 </dt>
-                <dd className="text-sm font-medium text-gray-900">{formatPrice(0)}</dd>
+                <dd className="text-sm font-medium text-gray-900"><Price amount={0} /></dd>
               </div>
               <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                 <dt className="text-base font-bold text-gray-900">Order total</dt>
-                <dd className="text-base font-bold text-gray-900">{formatPrice(total)}</dd>
+                <dd className="text-base font-bold text-gray-900"><Price amount={total} /></dd>
               </div>
+
+              {currency === 'CAD' && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-md flex items-start space-x-2">
+                  <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5" />
+                  <p className="text-xs text-blue-700">
+                    <strong>Aviso de Aduana:</strong> Este producto es internacional. Podrían aplicar cargos de aduana e impuestos de importación adicionales en Canadá.
+                  </p>
+                </div>
+              )}
             </dl>
 
             <div className="mt-6">

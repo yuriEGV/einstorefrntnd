@@ -5,6 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, CreditCard } from 'lucide-react';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { useTranslation } from 'react-i18next';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import StripePaymentForm from '../components/StripePaymentForm';
+import Price from '../components/Price';
+
+// Initialize Stripe (Test Public Key)
+const stripePromise = loadStripe('pk_test_51P1m6yP7V8k9L0l4QxZk...' || process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
 // Initialize MercadoPago with Public Key
 initMercadoPago('TEST-1d5ef6c8-19a6-4abb-8c31-28b48cadbf98', { locale: 'es-CL' });
@@ -15,17 +22,17 @@ const CheckoutPage = ({ user }) => {
   const [cart, setCart] = useState(() => readCart(cartKey));
   const [status, setStatus] = useState('idle');
   const [preferenceId, setPreferenceId] = useState(null);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [orderDetails, setOrderDetails] = useState(null);
   const [address, setAddress] = useState('');
+  const [currency, setCurrency] = useState(localStorage.getItem('einstore_currency') || 'CLP');
   const navigate = useNavigate();
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price || 0);
-  };
+  useEffect(() => {
+    const handleCurrency = () => setCurrency(localStorage.getItem('einstore_currency') || 'CLP');
+    window.addEventListener('currencyChanged', handleCurrency);
+    return () => window.removeEventListener('currencyChanged', handleCurrency);
+  }, []);
 
   useEffect(() => {
     setCart(readCart(cartKey));
@@ -45,22 +52,30 @@ const CheckoutPage = ({ user }) => {
       const body = {
         items: payloadItems,
         tax: 0,
-        shippingFee: serviceFee, // Map platform fee to shippingFee field for backend compatibility
-        shippingAddress: address
+        shippingFee: serviceFee,
+        shippingAddress: address,
+        currency: currency, // Pass currency to backend
+        paymentMethod: currency === 'CAD' ? 'stripe' : 'mercadopago'
       };
 
-      // 1. Create Order in Backend (Now includes Preference creation)
-      const orderData = await apiFetch('/orders', {
+      // 1. Create Order in Backend (Now includes Preference/Intent creation)
+      const data = await apiFetch('/orders', {
         method: 'POST',
         body: JSON.stringify(body)
       });
 
-      // 2. Use the preferenceId returned by the backend
-      setPreferenceId(orderData.order.preferenceId);
+      setOrderDetails(data.order);
+
+      if (currency === 'CAD') {
+        setClientSecret(data.order.clientSecret);
+      } else {
+        setPreferenceId(data.order.preferenceId);
+      }
+
       setStatus('ready');
     } catch (err) {
       setStatus('error');
-      console.error('Error creating order/preference:', err);
+      console.error('Error creating order/payment:', err);
     }
   };
 
@@ -99,7 +114,7 @@ const CheckoutPage = ({ user }) => {
                         </div>
                       </div>
                       <div className="flex-1 pt-2 flex items-end justify-between">
-                        <p className="mt-1 text-sm font-medium text-gray-900">{formatPrice(item.price)}</p>
+                        <p className="mt-1 text-sm font-medium text-gray-900"><Price amount={item.price} /></p>
                         <p className="mt-1 text-sm text-gray-500">Qty {item.qty}</p>
                       </div>
                     </div>
@@ -109,15 +124,15 @@ const CheckoutPage = ({ user }) => {
               <dl className="border-t border-gray-200 py-6 px-4 space-y-6 sm:px-6">
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-gray-600">{t('checkout.subtotal')}</dt>
-                  <dd className="text-sm font-medium text-gray-900">{formatPrice(total)}</dd>
+                  <dd className="text-sm font-medium text-gray-900"><Price amount={total} /></dd>
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-gray-600">Comisión de Gestión (Platform Fee)</dt>
-                  <dd className="text-sm font-medium text-gray-900">{formatPrice(serviceFee)}</dd>
+                  <dd className="text-sm font-medium text-gray-900"><Price amount={serviceFee} /></dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-6">
                   <dt className="text-base font-bold text-gray-900">{t('checkout.total')}</dt>
-                  <dd className="text-base font-bold text-gray-900">{formatPrice(finalTotal)}</dd>
+                  <dd className="text-base font-bold text-gray-900"><Price amount={finalTotal} /></dd>
                 </div>
               </dl>
             </div>
@@ -158,7 +173,7 @@ const CheckoutPage = ({ user }) => {
                     disabled={status === 'creating'}
                     className="w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                   >
-                    {status === 'creating' ? t('checkout.processing') : `${t('checkout.pay')} ${formatPrice(finalTotal)}`}
+                    {status === 'creating' ? t('checkout.processing') : `${t('checkout.pay')} ${currency === 'CLP' ? 'CLP' : 'CAD'}`}
                   </button>
                 ) : null}
 
@@ -167,7 +182,7 @@ const CheckoutPage = ({ user }) => {
                 )}
               </div>
 
-              {status === 'ready' && preferenceId && (
+              {status === 'ready' && currency === 'CLP' && preferenceId && (
                 <div className="space-y-4">
                   <p className="text-sm text-gray-700 font-medium text-center mb-4">{t('checkout.mercadopago_msg')}</p>
                   <div className="flex justify-center">
@@ -177,9 +192,22 @@ const CheckoutPage = ({ user }) => {
                 </div>
               )}
 
+              {status === 'ready' && currency === 'CAD' && clientSecret && (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-700 font-medium text-center mb-4">Complete your payment using Stripe</p>
+                  <Elements stripe={stripePromise}>
+                    <StripePaymentForm
+                      clientSecret={clientSecret}
+                      orderId={orderDetails?._id}
+                      total={finalTotal}
+                    />
+                  </Elements>
+                </div>
+              )}
+
               <div className="mt-6 flex items-center justify-center space-x-2 text-gray-400">
                 <CreditCard className="h-6 w-6" />
-                <span className="text-xs">{t('checkout.powered_mp')}</span>
+                <span className="text-xs">{currency === 'CLP' ? t('checkout.powered_mp') : 'Powered by Stripe'}</span>
               </div>
             </div>
           </div>

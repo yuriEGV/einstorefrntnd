@@ -5,21 +5,33 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWallet } from '../hooks/useWallet';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
+import { Coins } from 'lucide-react';
 
 const Navbar = ({ user, onLogout, cartItemCount }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [currentCurrency, setCurrentCurrency] = useState(localStorage.getItem('einstore_currency') || 'CLP');
   const navigate = useNavigate();
   const location = useLocation();
   const { account, connectWallet, disconnectWallet } = useWallet();
   const { t, i18n } = useTranslation();
+
+  const changeCurrency = (currency) => {
+    localStorage.setItem('einstore_currency', currency);
+    setCurrentCurrency(currency);
+    setIsCurrencyOpen(false);
+    // Dispatch custom event for Price component to listen to
+    window.dispatchEvent(new CustomEvent('currencyChanged', { detail: { currency } }));
+  };
 
   // Auto-close all menus when the URL changes
   useEffect(() => {
     setIsMenuOpen(false);
     setIsProfileOpen(false);
     setIsLangOpen(false);
+    setIsCurrencyOpen(false);
   }, [location.pathname]);
 
   const changeLanguage = (lng) => {
@@ -47,6 +59,30 @@ const Navbar = ({ user, onLogout, cartItemCount }) => {
           </div>
 
           <div className="hidden md:flex items-center space-x-6">
+
+            {/* Currency Switcher */}
+            <div className="relative">
+              <button
+                onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                className="text-gray-500 hover:text-indigo-600 transition-colors flex items-center"
+              >
+                <Coins className="w-5 h-5 mr-1" />
+                <span className="text-sm font-medium uppercase">{currentCurrency}</span>
+              </button>
+              <AnimatePresence>
+                {isCurrencyOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-xl py-2 border border-gray-100"
+                  >
+                    <button onClick={() => changeCurrency('CLP')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">🇨🇱 CLP</button>
+                    <button onClick={() => changeCurrency('CAD')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">🇨🇦 CAD</button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Language Switcher */}
             <div className="relative">

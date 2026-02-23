@@ -8,15 +8,19 @@ import ChatWindow from '../components/ChatWindow';
 import { MessageSquare } from 'lucide-react';
 
 const Dashboard = ({ user }) => {
-  const { t } = useTranslation();
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-CL', {
+  const [currency, setCurrency] = useState(localStorage.getItem('einstore_currency') || 'CLP');
+  const formatPrice = (amount) => {
+    return new Intl.NumberFormat(currency === 'CLP' ? 'es-CL' : 'en-CA', {
       style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price || 0);
+      currency: currency,
+    }).format(amount);
   };
+
+  useEffect(() => {
+    const handleCurrency = () => setCurrency(localStorage.getItem('einstore_currency') || 'CLP');
+    window.addEventListener('currencyChanged', handleCurrency);
+    return () => window.removeEventListener('currencyChanged', handleCurrency);
+  }, []);
 
   const [stats, setStats] = useState({
     users: 0,
@@ -64,6 +68,16 @@ const Dashboard = ({ user }) => {
       .then(data => setAllUsers(data.users || []))
       .catch(err => console.error(err));
   }, []);
+
+  const handleVerifyKyc = async (userId) => {
+    try {
+      await apiFetch(`/users/verifyKyc/${userId}`, { method: 'PATCH' });
+      alert('Usuario verificado correctamente.');
+      fetchAllUsers();
+    } catch (error) {
+      alert('Error al verificar usuario.');
+    }
+  };
 
   const fetchAdminStats = useCallback(() => {
     apiFetch('/orders/stats/dashboard')
@@ -601,6 +615,7 @@ const Dashboard = ({ user }) => {
                     <th className="px-6 py-3">Email</th>
                     <th className="px-6 py-3">Role</th>
                     <th className="px-6 py-3">Verified Supplier</th>
+                    <th className="px-6 py-3">KYC Status</th>
                     <th className="px-6 py-3">Actions</th>
                   </tr>
                 </thead>
@@ -628,6 +643,20 @@ const Dashboard = ({ user }) => {
                             <Shield className="w-3 h-3" />
                             <span>{u.isVerifiedSeller ? 'Verified' : 'Unverified'}</span>
                           </button>
+                        </td>
+                        <td className="px-6 py-4">
+                          {u.idDocument ? (
+                            <button
+                              onClick={() => handleVerifyKyc(u._id)}
+                              disabled={u.isIdentityVerified}
+                              className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${u.isIdentityVerified ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'}`}
+                            >
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>{u.isIdentityVerified ? 'KYC Verified' : 'Verify KYC'}</span>
+                            </button>
+                          ) : (
+                            <span className="text-gray-400 text-xs italic">No Document</span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           {user.role === 'admin' && (

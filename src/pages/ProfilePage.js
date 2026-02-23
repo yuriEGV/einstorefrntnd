@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch } from '../api';
 import { useTranslation } from 'react-i18next';
-import { User, Package, Clock, CreditCard } from 'lucide-react';
+import { User, Package, Clock, CreditCard, ShieldCheck } from 'lucide-react';
 
 const ProfilePage = ({ user }) => {
     const [orders, setOrders] = useState([]);
@@ -10,7 +10,31 @@ const ProfilePage = ({ user }) => {
     const [wallet, setWallet] = useState(user?.cryptoWallet || '');
     const [dni, setDni] = useState(user?.dni || '');
     const [phone, setPhone] = useState(user?.phone || '');
+    const [kycFile, setKycFile] = useState(null);
+    const [kycStatus, setKycStatus] = useState(user?.isIdentityVerified ? 'verified' : (user?.idDocument ? 'pending' : 'none'));
     const { t } = useTranslation();
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            setKycStatus('uploading');
+            await apiFetch('/users/uploadKyc', {
+                method: 'POST',
+                body: formData,
+                headers: {} // apiFetch might need empty headers for FormData to let browser set boundary
+            });
+            setKycStatus('pending');
+            alert('Documento subido correctamente. En espera de verificación.');
+        } catch (error) {
+            setKycStatus('none');
+            alert('Error al subir el documento.');
+        }
+    };
 
     const handleUpdateSettings = async (e) => {
         e.preventDefault();
@@ -108,6 +132,37 @@ const ProfilePage = ({ user }) => {
                                 placeholder="Ej: +56 9 1234 5678"
                             />
                         </div>
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-6">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Documento de Identidad (ID / Pasaporte)</label>
+                        <div className="flex items-center space-x-4">
+                            {kycStatus === 'verified' ? (
+                                <div className="flex items-center text-green-600 font-semibold">
+                                    <ShieldCheck className="w-5 h-5 mr-2" />
+                                    Verificado
+                                </div>
+                            ) : kycStatus === 'pending' ? (
+                                <div className="flex items-center text-yellow-600 font-semibold">
+                                    <Clock className="w-5 h-5 mr-2" />
+                                    En revisión
+                                </div>
+                            ) : (
+                                <input
+                                    type="file"
+                                    onChange={handleFileUpload}
+                                    className="block w-full text-sm text-gray-500
+                                        file:mr-4 file:py-2 file:px-4
+                                        file:rounded-full file:border-0
+                                        file:text-sm file:font-semibold
+                                        file:bg-indigo-50 file:text-indigo-700
+                                        hover:file:bg-indigo-100"
+                                />
+                            )}
+                        </div>
+                        <p className="mt-2 text-xs text-gray-400">
+                            Formatos aceptados: JPG, PNG. Máximo 5MB. Esto es obligatorio para vendedores internacionales.
+                        </p>
                     </div>
                 </div>
 

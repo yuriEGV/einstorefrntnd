@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@mercadopago/sdk-react": "^1.0.7",
+    "@stripe/react-stripe-js": "^5.6.0",
+    "@stripe/stripe-js": "^8.8.0",
     "@testing-library/jest-dom": "^6.0.0",
     "cra-template-pwa": "2.0.0",
     "framer-motion": "^12.34.1",
