@@ -10,8 +10,10 @@ import { Elements } from '@stripe/react-stripe-js';
 import StripePaymentForm from '../components/StripePaymentForm';
 import Price from '../components/Price';
 
-// Initialize Stripe (Test Public Key)
-const stripePromise = loadStripe('pk_test_51P1m6yP7V8k9L0l4QxZk...' || process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+// Initialize Stripe - requires REACT_APP_STRIPE_PUBLIC_KEY in Vercel env vars
+const stripePromise = process.env.REACT_APP_STRIPE_PUBLIC_KEY
+  ? loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY)
+  : null;
 
 // Initialize MercadoPago with Public Key
 initMercadoPago('TEST-1d5ef6c8-19a6-4abb-8c31-28b48cadbf98', { locale: 'es-CL' });
