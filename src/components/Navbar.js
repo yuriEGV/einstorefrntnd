@@ -101,8 +101,9 @@ const Navbar = ({ user, onLogout, cartItemCount }) => {
                     exit={{ opacity: 0, y: 10 }}
                     className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-xl py-2 border border-gray-100"
                   >
-                    <button onClick={() => changeLanguage('en')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">English</button>
-                    <button onClick={() => changeLanguage('es')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Español</button>
+                    <button onClick={() => changeLanguage('en')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">🇺🇸 English</button>
+                    <button onClick={() => changeLanguage('es')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">🇪🇸 Español</button>
+                    <button onClick={() => changeLanguage('fr')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">🇫🇷 Français</button>
                   </motion.div>
                 )}
               </AnimatePresence>
