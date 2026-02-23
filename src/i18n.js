@@ -162,6 +162,86 @@ const resources = {
                 address_required: "La dirección de envío es obligatoria"
             }
         }
+    },
+    fr: {
+        translation: {
+            nav: {
+                home: "Accueil",
+                shop: "Boutique",
+                categories: "Catégories",
+                login: "Connexion",
+                signup: "S'inscrire",
+                dashboard: "Tableau de bord",
+                profile: "Profil",
+                logout: "Déconnexion",
+                connect_wallet: "Connecter le portefeuille",
+                cart: "Panier"
+            },
+            common: {
+                welcome: "Bienvenue",
+                overview: "Aperçu",
+                my_products: "Mes Produits",
+                security: "Sécurité",
+                users: "Utilisateurs",
+                all_products: "Tous les Produits",
+                dashboard_overview: "Aperçu du Tableau de bord",
+                total_users: "Total Utilisateurs",
+                total_products: "Total Produits",
+                total_orders: "Total Commandes",
+                revenue: "Revenus",
+                recent_orders: "Commandes Récentes",
+                order_id: "ID Commande",
+                date: "Date",
+                status: "Statut",
+                total: "Total",
+                no_orders: "Aucune commande trouvée.",
+                add_product: "Ajouter un Produit",
+                edit_product: "Modifier le Produit",
+                stock: "Stock",
+                delete_confirm: "Êtes-vous sûr de vouloir supprimer ce produit ?",
+                change_password: "Changer le Mot de Passe",
+                current_password: "Mot de Passe Actuel",
+                new_password: "Nouveau Mot de Passe",
+                confirm_password: "Confirmer le Nouveau Mot de Passe",
+                update_password: "Mettre à jour le Mot de Passe",
+                password_updated: "Mot de passe mis à jour avec succès",
+                passwords_mismatch: "Les mots de passe ne correspondent pas",
+                please_login: "Veuillez vous connecter"
+            },
+            success: {
+                password_updated: "Mot de passe mis à jour avec succès"
+            },
+            hero: {
+                title_1: "Découvrez le Futur",
+                title_2: "du Shopping",
+                subtitle: "Découvrez une collection sélectionnée de produits premium conçus pour sublimer votre style de vie. Qualité fiable, style intemporel.",
+                shop_now: "Acheter Maintenant",
+                join_us: "Rejoignez-nous"
+            },
+            checkout: {
+                title: "Paiement",
+                summary: "Récapitulatif de la Commande",
+                subtotal: "Sous-total",
+                shipping: "Livraison",
+                taxes: "Taxes",
+                total: "Total",
+                payment_details: "Détails du Paiement",
+                secure_msg: "Les paiements sont sécurisés et chiffrés.",
+                pay: "Payer",
+                processing: "Traitement en cours...",
+                empty_cart: "Votre panier est vide",
+                go_back: "Retour aux achats",
+                credit_card: "Carte Bancaire",
+                crypto: "Crypto (ETH)",
+                connect_wallet_msg: "Connectez votre portefeuille pour payer en Crypto.",
+                error_msg: "Une erreur est survenue. Veuillez réessayer.",
+                mercadopago_msg: "Cliquez ci-dessous pour payer avec MercadoPago :",
+                redirect_msg: "Vous serez redirigé vers MercadoPago pour finaliser votre achat.",
+                powered_mp: "Propulsé par MercadoPago",
+                blockchain_secured: "Sécurisé par la Blockchain",
+                address_required: "L'adresse de livraison est obligatoire"
+            }
+        }
     }
 };
 

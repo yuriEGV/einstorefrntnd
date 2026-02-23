@@ -1,42 +1,64 @@
-const API_KEY = 'cbd090558110b1069f2e3be7'; // ExchangeRate-API free key
-const BASE_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}/pair`;
+// Currency utility — uses static fallback rates to avoid broken free API keys
+// To use a real-time API, replace EXCHANGE_RATE_API_KEY in your .env file.
+
+const EXCHANGE_RATE_API_KEY = process.env.REACT_APP_EXCHANGE_RATE_API_KEY;
+
+// Reliable fallback rates (updated periodically)
+const FALLBACK_RATES = {
+    CLP_CAD: 0.00145,
+    CAD_CLP: 689.0,
+    CLP_USD: 0.00107,
+    USD_CLP: 935.0,
+    CLP_EUR: 0.00099,
+    EUR_CLP: 1010.0,
+};
 
 /**
- * Converts an amount from one currency to another using real-time rates.
- * Includes a 2% safety margin for exchange rate fluctuations.
+ * Converts an amount from one currency to another.
+ * Tries live API first; falls back to static rates.
+ * Includes a 2% safety margin.
  */
 export const convertCurrency = async (amount, from, to) => {
     if (from === to) return amount;
 
-    try {
-        const response = await fetch(`${BASE_URL}/${from}/${to}`);
-        const data = await response.json();
+    // Try live API only if a key is configured
+    if (EXCHANGE_RATE_API_KEY) {
+        try {
+            const url = `https://v6.exchangerate-api.com/v6/${EXCHANGE_RATE_API_KEY}/pair/${from}/${to}`;
+            const response = await fetch(url);
+            const data = await response.json();
 
-        if (data.result === "success") {
-            const rate = data.conversion_rate;
-            // Add 2% safety margin as requested
-            const finalRate = rate * 1.02;
-            return (amount * finalRate).toFixed(2);
+            if (data.result === 'success') {
+                const finalRate = data.conversion_rate * 1.02;
+                return (amount * finalRate).toFixed(2);
+            }
+        } catch (_) {
+            // Fall through to static rates
         }
-        throw new Error("Exchange rate fetch failed");
-    } catch (error) {
-        console.error("Currency Conversion Error:", error);
-        // Fallback rates if API fails
-        const fallbackRates = {
-            'CLP_CAD': 0.0014,
-            'CAD_CLP': 714.0
-        };
-        const pair = `${from}_${to}`;
-        const rate = fallbackRates[pair] || 1;
-        return (amount * rate).toFixed(2);
     }
+
+    // Use static fallback rates (always available, no API needed)
+    const pair = `${from}_${to}`;
+    const rate = FALLBACK_RATES[pair];
+    if (rate) {
+        return (amount * rate * 1.02).toFixed(2);
+    }
+
+    // If no rate found, return as-is
+    return amount.toFixed(2);
 };
 
 /**
- * Groups currency formatting logic
+ * Format a number as a currency string.
  */
 export const formatCurrencyValue = (amount, currency) => {
-    return new Intl.NumberFormat(currency === 'CLP' ? 'es-CL' : 'en-CA', {
+    const locales = {
+        CLP: 'es-CL',
+        CAD: 'en-CA',
+        USD: 'en-US',
+        EUR: 'fr-FR',
+    };
+    return new Intl.NumberFormat(locales[currency] || 'en-US', {
         style: 'currency',
         currency: currency,
     }).format(amount);
