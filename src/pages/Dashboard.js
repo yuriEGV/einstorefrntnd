@@ -1,3 +1,4 @@
+// Enterprise Upgrade Dashboard with Multicurrency Support
 import React, { useEffect, useState, useCallback } from 'react';
 import { apiFetch } from '../api';
 import { Link } from 'react-router-dom';
