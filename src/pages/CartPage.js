@@ -1,14 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { getCartKey, readCart, writeCart, } from '../utils/cart';
-import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag, AlertCircle } from 'lucide-react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { getCartKey, readCart, writeCart } from '../utils/cart';
+import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag, AlertCircle, CheckCircle } from 'lucide-react';
 import Price from '../components/Price';
 
 const CartPage = ({ user }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const cartKey = useMemo(() => getCartKey(user), [user]);
   const [cart, setCartState] = useState([]);
   const [currency, setCurrency] = useState(localStorage.getItem('einstore_currency') || 'CLP');
+
+  // Detect MercadoPago return
+  const params = new URLSearchParams(location.search);
+  const mpStatus = params.get('status') || params.get('collection_status');
 
   useEffect(() => {
     const handleCurrency = () => setCurrency(localStorage.getItem('einstore_currency') || 'CLP');
@@ -16,13 +21,20 @@ const CartPage = ({ user }) => {
     return () => window.removeEventListener('currencyChanged', handleCurrency);
   }, []);
 
+  // Handle MercadoPago return: approved → clear cart + redirect to success
   useEffect(() => {
+    if (mpStatus === 'approved') {
+      const key = getCartKey(user);
+      writeCart(key, []);
+      window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { cartKey: key } }));
+      navigate('/success');
+      return;
+    }
+    // For failure/pending/null: load cart normally WITHOUT clearing it
     setCartState(readCart(cartKey));
-
-    const handleStorage = () => setCartState(readCart(cartKey));
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, [cartKey]);
+    window.addEventListener('storage', () => setCartState(readCart(cartKey)));
+    return () => window.removeEventListener('storage', () => setCartState(readCart(cartKey)));
+  }, [cartKey, mpStatus, navigate, user]);
 
   const updateCart = (newCart) => {
     writeCart(cartKey, newCart);
