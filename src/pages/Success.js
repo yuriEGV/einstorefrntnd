@@ -147,7 +147,7 @@ const Success = ({ user }) => {
 
           <div className="mt-10 space-y-4">
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/dashboard?tab=my-purchases')}
               className="w-full h-14 flex items-center justify-center space-x-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 active:scale-95"
             >
               <MessageSquare className="w-5 h-5" />

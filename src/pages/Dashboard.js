@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { apiFetch } from '../api';
 import { Link } from 'react-router-dom';
-import { Users, ShoppingBag, Search, DollarSign, Activity, X, Plus, Trash2, Edit, Shield, Package, Lock, Menu, ChevronLeft, ShieldCheck } from 'lucide-react';
+import { Users, ShoppingBag, Search, DollarSign, Activity, X, Plus, Trash2, Edit, Shield, Package, Lock, Menu, ChevronLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import ChatWindow from '../components/ChatWindow';
@@ -32,7 +32,7 @@ const Dashboard = ({ user }) => {
     profit: 0,
     sellerEarnings: 0
   });
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'my-products', 'security'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'my-products', 'my-purchases', 'security'
 
   // Overview State
   const [recentOrders, setRecentOrders] = useState([]);
@@ -105,12 +105,21 @@ const Dashboard = ({ user }) => {
       .catch(err => console.error("Failed to clear notifications", err));
   };
 
-  const fetchMyOrders = useCallback(() => {
-    const endpoint = user.role === 'admin' || user.role === 'user' ? '/orders/showAllMyOrders' : '/orders/showMySales';
-    apiFetch(endpoint).then(data => {
-      if (data.orders) setRecentOrders(data.orders.slice(0, 5));
-    }).catch(err => console.log(err));
-  }, [user.role]);
+  const [myPurchases, setMyPurchases] = useState([]);
+
+  const fetchMyOrders = useCallback(async () => {
+    try {
+      // 1. Fetch Sales (where user is Seller)
+      const salesData = await apiFetch('/orders/showMySales');
+      if (salesData.orders) setRecentOrders(salesData.orders);
+
+      // 2. Fetch Purchases (where user is Buyer)
+      const purchasesData = await apiFetch('/orders/showAllMyOrders');
+      if (purchasesData.orders) setMyPurchases(purchasesData.orders);
+    } catch (err) {
+      console.error("Order fetch error:", err);
+    }
+  }, []);
 
   const fetchMyProducts = useCallback(() => {
     // Requires backend to support filtering by user or a dedicated endpoint
@@ -120,6 +129,12 @@ const Dashboard = ({ user }) => {
       .then(data => setMyProducts(data.products || []))
       .catch(err => console.error(err));
   }, [user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab) setActiveTab(tab);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -324,6 +339,7 @@ const Dashboard = ({ user }) => {
         <nav className="mt-6 flex-1 px-4">
           <SidebarItem icon={<Activity />} label={t('common.overview')} active={activeTab === 'overview'} isOpen={isSidebarOpen} onClick={() => setActiveTab('overview')} />
           <SidebarItem icon={<Package />} label={t('common.my_products')} active={activeTab === 'my-products'} isOpen={isSidebarOpen} onClick={() => setActiveTab('my-products')} />
+          <SidebarItem icon={<ShoppingBag />} label="Mis Compras" active={activeTab === 'my-purchases'} isOpen={isSidebarOpen} onClick={() => setActiveTab('my-purchases')} />
           <SidebarItem icon={<Shield />} label={t('common.security')} active={activeTab === 'security'} isOpen={isSidebarOpen} onClick={() => setActiveTab('security')} />
           {user.role === 'admin' && (
             <SidebarItem icon={<Users />} label={t('common.users')} active={activeTab === 'users'} isOpen={isSidebarOpen} onClick={() => setActiveTab('users')} />
@@ -354,6 +370,7 @@ const Dashboard = ({ user }) => {
         <div className="md:hidden flex space-x-4 mb-6 overflow-x-auto pb-2">
           <button onClick={() => setActiveTab('overview')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'overview' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>{t('common.overview')}</button>
           <button onClick={() => setActiveTab('my-products')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'my-products' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>{t('common.my_products')}</button>
+          <button onClick={() => setActiveTab('my-purchases')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'my-purchases' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>Mis Compras</button>
           <button onClick={() => setActiveTab('security')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'security' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>{t('common.security')}</button>
           {user.role === 'admin' && (
             <button onClick={() => setActiveTab('users')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'users' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>{t('common.users')}</button>
@@ -602,7 +619,94 @@ const Dashboard = ({ user }) => {
           </div>
         )}
 
-        {/* SECURITY TAB */}
+        {/* MY PURCHASES TAB */}
+        {activeTab === 'my-purchases' && (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold text-gray-900">Mis Compras</h1>
+            <div className="grid grid-cols-1 gap-6">
+              {myPurchases
+                .filter(o =>
+                  o._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  o.orderItems.some(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                )
+                .map(order => (
+                  <div key={order._id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-6">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                        <div className="mb-4 md:mb-0">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Orden ID</span>
+                          <h3 className="text-lg font-mono font-bold text-indigo-600">#{order._id.slice(-8).toUpperCase()}</h3>
+                          <p className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <div className="text-right mr-4">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total</span>
+                            <p className="text-xl font-bold text-gray-900">{formatPrice(order.total)}</p>
+                          </div>
+                          <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${order.status === 'paid' ? 'bg-green-100 text-green-700' :
+                            order.status === 'shipped' ? 'bg-blue-100 text-blue-700' :
+                              order.status === 'delivered' ? 'bg-gray-100 text-gray-700' :
+                                'bg-yellow-100 text-yellow-700'
+                            }`}>
+                            {order.status === 'paid' ? 'Pagado' :
+                              order.status === 'shipped' ? 'En camino' :
+                                order.status === 'delivered' ? 'Entregado' :
+                                  order.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Lifecycle Stepper */}
+                      <div className="relative mb-8 px-4">
+                        <div className="absolute top-5 left-8 right-8 h-1 bg-gray-100 -z-0"></div>
+                        <div className="flex justify-between relative z-10">
+                          <OrderStep label="Pagado" active={!!order.status} completed={['paid', 'shipped', 'delivered'].includes(order.status)} />
+                          <OrderStep label="Enviado" active={['shipped', 'delivered'].includes(order.status)} completed={['delivered'].includes(order.status)} />
+                          <OrderStep label="Entregado" active={order.status === 'delivered'} completed={order.status === 'delivered'} />
+                        </div>
+                      </div>
+
+                      <div className="border-t border-gray-50 pt-6 flex flex-col md:flex-row justify-between items-start md:items-center">
+                        <div className="flex -space-x-2 mb-4 md:mb-0">
+                          {order.orderItems.map((item, idx) => (
+                            <img key={idx} src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover border-2 border-white shadow-sm" title={item.name} />
+                          ))}
+                          <span className="ml-4 text-sm text-gray-500 self-center">
+                            {order.orderItems.length} {order.orderItems.length === 1 ? 'producto' : 'productos'}
+                          </span>
+                        </div>
+                        <div className="flex space-x-3 w-full md:w-auto">
+                          <button
+                            onClick={() => openChat(order)}
+                            className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl font-bold hover:bg-indigo-100 transition"
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                            <span>Abrir Chat</span>
+                          </button>
+                          {order.status === 'shipped' && (
+                            <button
+                              onClick={() => handleUpdateOrderStatus(order._id, 'delivered')}
+                              className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-green-700 transition shadow-lg shadow-green-100"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>Confirmar Recibo</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              {myPurchases.length === 0 && (
+                <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+                  <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-gray-200" />
+                  <p className="text-gray-500 font-medium">Aún no has realizado ninguna compra.</p>
+                  <Link to="/products" className="mt-4 inline-block text-indigo-600 font-bold hover:underline">Ir a la tienda</Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         {activeTab === 'security' && (
           <div className="max-w-2xl bg-white rounded-xl shadow p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
@@ -883,6 +987,16 @@ const StatCard = ({ icon, title, value, color }) => (
       <p className="text-sm text-gray-500 font-medium">{title}</p>
       <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
     </div>
+  </div>
+);
+
+const OrderStep = ({ label, active, completed }) => (
+  <div className="flex flex-col items-center flex-1">
+    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 transition-all duration-500 ${completed ? 'bg-green-600 border-green-100 text-white' : active ? 'bg-white border-indigo-600 text-indigo-600' : 'bg-white border-gray-100 text-gray-300'
+      }`}>
+      {completed ? <CheckCircle2 size={24} /> : <div className={`w-3 h-3 rounded-full ${active ? 'bg-indigo-600 animate-pulse' : 'bg-gray-200'}`} />}
+    </div>
+    <span className={`text-[10px] font-bold uppercase mt-2 tracking-tighter ${completed ? 'text-green-600' : active ? 'text-indigo-600' : 'text-gray-400'}`}>{label}</span>
   </div>
 );
 
