@@ -24,16 +24,32 @@ const Success = ({ user }) => {
       // ignore
     }
 
+    const collectionStatus = params.get('collection_status');
+    const status = params.get('status');
+
     if (orderIdFromQuery) {
-      apiFetch(`/orders/${orderIdFromQuery}`)
-        .then(data => {
+      const verifyAndFetchOrder = async () => {
+        try {
+          // If the URL indicates success but the DB might still be pending (e.g. webhook delay)
+          // we force an update if we see 'approved' status in local params
+          if (collectionStatus === 'approved' || status === 'approved') {
+            await apiFetch(`/orders/${orderIdFromQuery}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ paymentIntentId: 'MERCADOPAGO_APPROVED_FALLBACK' })
+              // Sending a dummy paymentIntentId triggers the 'paid' logic in backend
+            });
+          }
+
+          const data = await apiFetch(`/orders/${orderIdFromQuery}`);
           setOrder(data.order);
           setLoading(false);
-        })
-        .catch(err => {
-          console.error('Error fetching order:', err);
+        } catch (err) {
+          console.error('Error verifying/fetching order:', err);
           setLoading(false);
-        });
+        }
+      };
+
+      verifyAndFetchOrder();
     }
   }, [user, orderIdFromQuery]);
 
