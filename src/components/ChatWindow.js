@@ -3,18 +3,23 @@ import { apiFetch } from '../api';
 import { Send, Image as ImageIcon, ShieldAlert, Lock, User, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const ChatWindow = ({ orderId, currentUser, isBlocked, disputeStatus }) => {
+const ChatWindow = ({ order, currentUser, isBlocked, disputeStatus }) => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef(null);
 
+    const orderId = order?._id;
+    const isSeller = currentUser.userId === order?.seller?._id;
+    const otherParticipant = isSeller ? order?.user : order?.seller;
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     const fetchMessages = useCallback(async () => {
+        if (!orderId) return;
         try {
             const data = await apiFetch(`/messages/${orderId}`);
             setMessages(data.messages);
@@ -52,24 +57,57 @@ const ChatWindow = ({ orderId, currentUser, isBlocked, disputeStatus }) => {
     };
 
     return (
-        <div className="flex flex-col h-[500px] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            {/* Header */}
-            <div className="bg-indigo-600 p-4 flex items-center justify-between text-white">
-                <div className="flex items-center space-x-3">
-                    <div className="bg-white/20 p-2 rounded-full">
-                        <User className="w-5 h-5 text-white" />
+        <div className="flex flex-col h-[600px] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            {/* Header / Profile Info */}
+            <div className="bg-indigo-600 p-4 text-white">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                        <div className="bg-white/20 p-2 rounded-full relative">
+                            <User className="w-5 h-5 text-white" />
+                            {otherParticipant?.isIdentityVerified && (
+                                <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full border-2 border-indigo-600 p-0.5">
+                                    <ShieldCheck className="w-3 h-3 text-white" />
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <div className="flex items-center space-x-2">
+                                <h3 className="font-bold">{otherParticipant?.name || 'Cargando...'}</h3>
+                                <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
+                                    {isSeller ? 'Comprador' : 'Vendedor'}
+                                </span>
+                            </div>
+                            <p className="text-xs text-indigo-100 italic">
+                                {otherParticipant?.isIdentityVerified ? '✓ Identidad Verificada' : '• Identidad Pendiente'}
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="font-bold">Chat de la Orden</h3>
-                        <p className="text-xs text-indigo-100">Transacción Protegida</p>
+                    {disputeStatus === 'open' && (
+                        <div className="flex items-center bg-amber-500 px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+                            <ShieldAlert className="w-4 h-4 mr-1" />
+                            BAJO RECLAMO
+                        </div>
+                    )}
+                </div>
+
+                {/* Secondary Info Bar (Confidence) */}
+                <div className="flex items-center justify-between pt-2 border-t border-white/10 text-[11px]">
+                    <div className="flex items-center space-x-4">
+                        <div className="flex items-center">
+                            <Lock className="w-3 h-3 mr-1 opacity-70" />
+                            Pago en Custodia
+                        </div>
+                        {otherParticipant?.phone && (
+                            <div className="flex items-center">
+                                <span className="mr-1 opacity-70">Tel:</span>
+                                {otherParticipant.phone}
+                            </div>
+                        )}
+                    </div>
+                    <div className="text-indigo-200">
+                        Orden #{orderId?.slice(-6).toUpperCase()}
                     </div>
                 </div>
-                {disputeStatus === 'open' && (
-                    <div className="flex items-center bg-amber-500 px-3 py-1 rounded-full text-xs font-bold animate-pulse">
-                        <ShieldAlert className="w-4 h-4 mr-1" />
-                        BAJO RECLAMO
-                    </div>
-                )}
             </div>
 
             {/* Messages */}
@@ -80,8 +118,9 @@ const ChatWindow = ({ orderId, currentUser, isBlocked, disputeStatus }) => {
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="text-center py-10">
-                        <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-2 opacity-50" />
-                        <p className="text-gray-400 text-sm">¡Compra realizada! Saluda al vendedor.</p>
+                        <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-2 opacity-30" />
+                        <p className="text-gray-400 text-sm">¡Comienza la conversación!</p>
+                        <p className="text-xs text-gray-400 mt-1">Coordina la entrega con {otherParticipant?.name}.</p>
                     </div>
                 ) : (
                     messages.map((msg, index) => {

@@ -298,7 +298,6 @@ const Dashboard = ({ user }) => {
     setIsChatOpen(true);
   };
 
-
   if (!user) return <div className="min-h-screen flex justify-center items-center text-red-500 font-bold">{t('common.please_login')}</div>;
 
   return (
@@ -445,13 +444,24 @@ const Dashboard = ({ user }) => {
                       .map((order) => (
                         <tr key={order._id}>
                           <td className="px-6 py-4 font-medium">#{order._id.slice(-6).toUpperCase()}</td>
-                          <td className="px-6 py-4 text-gray-500">
-                            {order.user?.name || 'Guest'}
+                          <td className="px-6 py-4 text-gray-700">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">{order.user?.name || 'Guest'}</span>
+                              {order.user?.isIdentityVerified && (
+                                <ShieldCheck className="w-4 h-4 text-blue-500" title="Identidad Verificada" />
+                              )}
+                            </div>
+                            <div className="text-[10px] text-gray-400">{order.user?.email}</div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${order.deliveryMethod === 'pickup' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
-                              {order.deliveryMethod === 'pickup' ? 'Retiro' : 'Envío'}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase w-fit ${order.deliveryMethod === 'pickup' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                                {order.deliveryMethod === 'pickup' ? 'Retiro' : 'Envío'}
+                              </span>
+                              {order.status === 'paid' && order.user?.phone && (
+                                <span className="text-[10px] text-gray-500 mt-1">Tel: {order.user.phone}</span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-xs">
                             {order.status === 'paid' ? (
@@ -831,12 +841,14 @@ const Dashboard = ({ user }) => {
               >
                 <X className="w-6 h-6" />
               </button>
-              <ChatWindow
-                orderId={selectedOrderForChat._id}
-                currentUser={user}
-                isBlocked={selectedOrderForChat.isChatBlocked}
-                disputeStatus={selectedOrderForChat.disputeStatus}
-              />
+              <div className="mt-8">
+                <ChatWindow
+                  order={selectedOrderForChat}
+                  currentUser={user}
+                  isBlocked={selectedOrderForChat.disputeStatus === 'open'}
+                  disputeStatus={selectedOrderForChat.disputeStatus}
+                />
+              </div>
             </motion.div>
           </div>
         )}
