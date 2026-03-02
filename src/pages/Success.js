@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getCartKey, writeCart } from '../utils/cart';
+import { getCartKey, writeCart, clearCart } from '../utils/cart';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { apiFetch } from '../api';
 import Price from '../components/Price';
@@ -15,14 +15,8 @@ const Success = ({ user }) => {
   const [loading, setLoading] = useState(!!orderIdFromQuery);
 
   useEffect(() => {
-    // Clear the user's cart after a successful payment
-    try {
-      const key = getCartKey(user);
-      writeCart(key, []);
-      window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { cartKey: key } }));
-    } catch (err) {
-      // ignore
-    }
+    // Clear ALL carts (guest and current user)
+    clearCart(user);
 
     const collectionStatus = params.get('collection_status');
     const status = params.get('status');
@@ -33,14 +27,14 @@ const Success = ({ user }) => {
           // If the URL indicates success but the DB might still be pending (e.g. webhook delay)
           // we force an update if we see 'approved' status in local params
           if (collectionStatus === 'approved' || status === 'approved') {
-            await apiFetch(`/orders/${orderIdFromQuery}`, {
+            await apiFetch(`/ orders / ${orderIdFromQuery} `, {
               method: 'PATCH',
               body: JSON.stringify({ paymentIntentId: 'MERCADOPAGO_APPROVED_FALLBACK' })
               // Sending a dummy paymentIntentId triggers the 'paid' logic in backend
             });
           }
 
-          const data = await apiFetch(`/orders/${orderIdFromQuery}`);
+          const data = await apiFetch(`/ orders / ${orderIdFromQuery} `);
           setOrder(data.order);
           setLoading(false);
         } catch (err) {

@@ -24,9 +24,7 @@ const CartPage = ({ user }) => {
   // Handle MercadoPago return: approved → clear cart + redirect to success
   useEffect(() => {
     if (mpStatus === 'approved') {
-      const key = getCartKey(user);
-      writeCart(key, []);
-      window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { cartKey: key } }));
+      clearCart(user);
       navigate('/success');
       return;
     }

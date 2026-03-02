@@ -52,15 +52,10 @@ function AppContent() {
 
   // Listen for cart updates
   useEffect(() => {
-    const handleCartUpdate = (event) => {
-      // If we could determine if this event is relevant for current user...
-      // For now, just re-read based on current user state
-      // But user state might be stale in closure. 
-      // safer to read from event detail if possible, or just re-check current correct key
-      const currentKey = user ? `cart:${user.userId}` : getCartKey(null);
-      if (event.detail.cartKey === currentKey) {
-        setCartItemCount(getCartCount(currentKey));
-      }
+    const handleCartUpdate = () => {
+      // Re-read whichever key is current
+      const currentKey = getCartKey(user);
+      setCartItemCount(getCartCount(currentKey));
     };
 
     window.addEventListener('cartUpdated', handleCartUpdate);
