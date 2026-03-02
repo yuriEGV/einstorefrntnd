@@ -15,8 +15,9 @@ const stripePromise = process.env.REACT_APP_STRIPE_PUBLIC_KEY
   ? loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY)
   : null;
 
-// Initialize MercadoPago with Public Key
-initMercadoPago('TEST-1d5ef6c8-19a6-4abb-8c31-28b48cadbf98', { locale: 'es-CL' });
+// Initialize MercadoPago with Public Key from Env
+const mpPublicKey = process.env.REACT_APP_MERCADOPAGO_PUBLIC_KEY || 'TEST-1d5ef6c8-19a6-4abb-8c31-28b48cadbf98';
+initMercadoPago(mpPublicKey, { locale: 'es-CL' });
 
 const CheckoutPage = ({ user }) => {
   const { t } = useTranslation();
