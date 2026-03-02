@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { getCartKey, readCart, writeCart } from '../utils/cart';
+import { getCartKey, readCart, writeCart, clearCart } from '../utils/cart';
 import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag, AlertCircle, CheckCircle } from 'lucide-react';
 import Price from '../components/Price';
 

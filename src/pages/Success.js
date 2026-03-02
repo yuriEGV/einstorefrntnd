@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { apiFetch } from '../api';
 import Price from '../components/Price';
 import { CheckCircle, Truck, Package, MessageSquare, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Success = ({ user }) => {
   const navigate = useNavigate();
