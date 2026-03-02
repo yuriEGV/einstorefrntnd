@@ -43,7 +43,7 @@ const Dashboard = ({ user }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedOrderForChat, setSelectedOrderForChat] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null); // Kept for product editing logic
-  const [productForm, setProductForm] = useState({ name: '', price: '', category: 'electronics', company: 'otros', description: '', inventory: 10, image: null });
+  const [productForm, setProductForm] = useState({ name: '', price: '', category: 'Electronics', company: 'otros', description: '', inventory: 10, image: null });
   const [mediaFile, setMediaFile] = useState(null);
   const [productLoading, setProductLoading] = useState(false);
 
@@ -202,7 +202,7 @@ const Dashboard = ({ user }) => {
 
   const openNewModal = () => {
     setEditingProduct(null);
-    setProductForm({ name: '', price: '', category: 'electronics', company: 'otros', description: '', inventory: 10, image: null });
+    setProductForm({ name: '', price: '', category: 'Electronics', company: 'otros', description: '', inventory: 10, image: null });
     setIsModalOpen(true); // Changed from setShowProductModal
   }
 
