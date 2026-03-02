@@ -428,6 +428,7 @@ const Dashboard = ({ user }) => {
                     <tr className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
                       <th className="px-6 py-3">Order ID</th>
                       <th className="px-6 py-3">Customer</th>
+                      <th className="px-6 py-3">Delivery</th>
                       <th className="px-6 py-3">Shipping Info</th>
                       <th className="px-6 py-3">Status</th>
                       <th className="px-6 py-3">Total</th>
@@ -447,6 +448,11 @@ const Dashboard = ({ user }) => {
                           <td className="px-6 py-4 text-gray-500">
                             {order.user?.name || 'Guest'}
                           </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${order.deliveryMethod === 'pickup' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                              {order.deliveryMethod === 'pickup' ? 'Retiro' : 'Envío'}
+                            </span>
+                          </td>
                           <td className="px-6 py-4 text-xs">
                             {order.status === 'paid' ? (
                               <div className="text-indigo-600 font-medium italic">
@@ -460,6 +466,21 @@ const Dashboard = ({ user }) => {
                           <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
                           <td className="px-6 py-4">
                             <div className="flex space-x-2">
+                              {order.status === 'paid' && order.deliveryMethod === 'pickup' && (
+                                <button
+                                  onClick={() => {
+                                    const newPickupStatus = !order.isPickupReady;
+                                    apiFetch(`/orders/${order._id}`, {
+                                      method: 'PATCH',
+                                      body: JSON.stringify({ isPickupReady: newPickupStatus })
+                                    }).then(() => fetchMyOrders());
+                                  }}
+                                  className={`text-[10px] px-2 py-1 rounded transition font-bold ${order.isPickupReady ? 'bg-green-500 text-white' : 'bg-amber-500 text-white'}`}
+                                  title={order.isPickupReady ? "Marcar como pendiente de retiro" : "Marcar como listo para retiro"}
+                                >
+                                  {order.isPickupReady ? '¡Listo para Retiro!' : 'Marcar p/ Retiro'}
+                                </button>
+                              )}
                               {order.status === 'paid' && (
                                 <button
                                   onClick={() => handleUpdateOrderStatus(order._id, 'shipped')}

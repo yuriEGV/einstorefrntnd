@@ -27,6 +27,7 @@ const CheckoutPage = ({ user }) => {
   const [clientSecret, setClientSecret] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
   const [address, setAddress] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState('delivery'); // 'delivery' or 'pickup'
   const [currency, setCurrency] = useState(localStorage.getItem('einstore_currency') || 'CLP');
   const navigate = useNavigate();
 
@@ -56,6 +57,7 @@ const CheckoutPage = ({ user }) => {
         tax: 0,
         shippingFee: serviceFee,
         shippingAddress: address,
+        deliveryMethod: deliveryMethod, // Added delivery method
         currency: currency, // Pass currency to backend
         paymentMethod: currency === 'CAD' ? 'stripe' : 'mercadopago'
       };
@@ -149,15 +151,35 @@ const CheckoutPage = ({ user }) => {
                 <ShieldCheck className="w-5 h-5 mr-2 text-indigo-600" />
                 Transacción Protegida (P2P)
               </h2>
+              <div className="flex space-x-4 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('delivery')}
+                  className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all ${deliveryMethod === 'delivery' ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-bold' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+                >
+                  Envío a Domicilio
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('pickup')}
+                  className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all ${deliveryMethod === 'pickup' ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-bold' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+                >
+                  Retiro en Tienda
+                </button>
+              </div>
+
               <textarea
                 required
-                placeholder="Ingresa tu dirección para coordinar con el vendedor..."
+                placeholder={deliveryMethod === 'delivery' ? "Ingresa tu dirección para coordinar con el vendedor..." : "Escribe un comentario o coordina el retiro..."}
                 className="w-full border-gray-200 rounded-xl p-3 focus:ring-indigo-500 resize-none h-24 border"
                 value={address}
                 onChange={e => setAddress(e.target.value)}
               ></textarea>
               <p className="text-xs text-gray-500 italic">
-                Nota: Einstore no gestiona la logística de envío. El vendedor se contactará contigo para coordinar la entrega.
+                {deliveryMethod === 'delivery'
+                  ? "Nota: Einstore no gestiona la logística de envío. El vendedor se contactará contigo para coordinar la entrega."
+                  : "Nota: Deberás coordinar el lugar y horario de retiro con el vendedor a través del chat."
+                }
               </p>
             </div>
 
