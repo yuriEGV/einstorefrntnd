@@ -709,6 +709,87 @@ const Dashboard = ({ user }) => {
             </div>
           </div>
         )}
+
+        {/* MY SALES TAB */}
+        {activeTab === 'my-sales' && (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-bold text-gray-900">Mis Ventas</h1>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <StatCard icon={<DollarSign className="w-8 h-8 text-green-600" />} title="Ventas Totales" value={mySales.length} color="bg-green-100" />
+              <StatCard icon={<Activity className="w-8 h-8 text-blue-600" />} title="Pendientes Envío" value={mySales.filter(o => (o.status || '').toLowerCase().trim() === 'paid').length} color="bg-blue-100" />
+              <StatCard icon={<CheckCircle2 className="w-8 h-8 text-indigo-600" />} title="Entregados" value={mySales.filter(o => (o.status || '').toLowerCase().trim() === 'delivered').length} color="bg-indigo-100" />
+            </div>
+
+            <div className="bg-white rounded-xl shadow p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 font-mono uppercase tracking-tighter">Gestión de Ventas</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-600 uppercase text-xs tracking-wider">
+                      <th className="px-6 py-3">Order ID</th>
+                      <th className="px-6 py-3">Comprador</th>
+                      <th className="px-6 py-3">Entrega</th>
+                      <th className="px-6 py-3">Estado</th>
+                      <th className="px-6 py-3">Total</th>
+                      <th className="px-6 py-3">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {mySales
+                      .filter(o =>
+                        o._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        o.user?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                      .map((order) => (
+                        <tr key={order._id}>
+                          <td className="px-6 py-4 font-medium">#{order._id.slice(-6).toUpperCase()}</td>
+                          <td className="px-6 py-4">
+                            <div className="font-medium text-gray-900">{order.user?.name || 'Comprador'}</div>
+                            <div className="text-[10px] text-gray-400">{order.user?.email}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${order.deliveryMethod === 'pickup' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                              {order.deliveryMethod === 'pickup' ? 'Retiro' : 'Envío'}
+                            </span>
+                            <div className="text-[10px] text-gray-500 mt-1 truncate max-w-[150px]">{order.shippingAddress}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${(order.status || '').toLowerCase().trim() === 'paid' ? 'bg-green-100 text-green-800' :
+                                (order.status || '').toLowerCase().trim() === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-gray-100 text-gray-800'
+                              }`}>{order.status}</span>
+                          </td>
+                          <td className="px-6 py-4 font-bold">{formatPrice(order.total)}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex space-x-2">
+                              {(order.status || '').toLowerCase().trim() === 'paid' && (
+                                <button
+                                  onClick={() => handleUpdateOrderStatus(order._id, 'shipped')}
+                                  className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition"
+                                >
+                                  Marcar Enviado
+                                </button>
+                              )}
+                              <button
+                                onClick={() => openChat(order)}
+                                className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100 transition flex items-center"
+                              >
+                                <MessageSquare className="w-3 h-3 mr-1" />
+                                Chat
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    {mySales.length === 0 && (
+                      <tr><td colSpan="6" className="px-6 py-20 text-center text-gray-500 italic">No tienes ventas registradas.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
         {activeTab === 'security' && (
           <div className="max-w-2xl bg-white rounded-xl shadow p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
