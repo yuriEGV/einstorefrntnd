@@ -53,9 +53,9 @@ function AppContent() {
   // Listen for cart updates
   useEffect(() => {
     const handleCartUpdate = () => {
-      // Re-read whichever key is current
-      const currentKey = getCartKey(user);
-      setCartItemCount(getCartCount(currentKey));
+      // Re-read count based on current user state
+      const key = getCartKey(user);
+      setCartItemCount(getCartCount(key));
     };
 
     window.addEventListener('cartUpdated', handleCartUpdate);

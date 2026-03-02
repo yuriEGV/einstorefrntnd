@@ -70,6 +70,27 @@ const Success = ({ user }) => {
         <div className="p-8">
           {order && (
             <div className="space-y-6">
+              {/* Software Activation Alert */}
+              {order.orderItems.some(item =>
+                item.name.toLowerCase().includes('soft') ||
+                item.name.toLowerCase().includes('ein') ||
+                item.name.toLowerCase().includes('activation')
+              ) && (
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 mb-6"
+                  >
+                    <div className="flex items-center space-x-3 mb-2">
+                      <MessageSquare className="w-6 h-6 text-amber-600" />
+                      <h3 className="text-lg font-bold text-amber-900">Instrucciones de Activación</h3>
+                    </div>
+                    <p className="text-amber-800 text-sm">
+                      Has comprado un producto digital. Por favor, <strong>revisa el chat</strong> con el vendedor para recibir tus claves de activación e instrucciones de instalación de inmediato.
+                    </p>
+                  </motion.div>
+                )}
+
               {/* Order Info */}
               <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
                 <div className="flex justify-between items-center mb-4">
