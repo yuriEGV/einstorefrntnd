@@ -32,10 +32,10 @@ const Dashboard = ({ user }) => {
     profit: 0,
     sellerEarnings: 0
   });
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'my-products', 'my-purchases', 'security'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'my-products', 'my-purchases', 'my-sales', 'security'
 
   // Overview State
-  const [recentOrders, setRecentOrders] = useState([]);
+  const [mySales, setMySales] = useState([]);
 
   // My Products State
   const [myProducts, setMyProducts] = useState([]);
@@ -111,7 +111,7 @@ const Dashboard = ({ user }) => {
     try {
       // 1. Fetch Sales (where user is Seller)
       const salesData = await apiFetch('/orders/showMySales');
-      if (salesData.orders) setRecentOrders(salesData.orders);
+      if (salesData.orders) setMySales(salesData.orders);
 
       // 2. Fetch Purchases (where user is Buyer)
       const purchasesData = await apiFetch('/orders/showAllMyOrders');
@@ -340,6 +340,7 @@ const Dashboard = ({ user }) => {
           <SidebarItem icon={<Activity />} label={t('common.overview')} active={activeTab === 'overview'} isOpen={isSidebarOpen} onClick={() => setActiveTab('overview')} />
           <SidebarItem icon={<Package />} label={t('common.my_products')} active={activeTab === 'my-products'} isOpen={isSidebarOpen} onClick={() => setActiveTab('my-products')} />
           <SidebarItem icon={<ShoppingBag />} label="Mis Compras" active={activeTab === 'my-purchases'} isOpen={isSidebarOpen} onClick={() => setActiveTab('my-purchases')} />
+          <SidebarItem icon={<DollarSign />} label="Mis Ventas" active={activeTab === 'my-sales'} isOpen={isSidebarOpen} onClick={() => setActiveTab('my-sales')} />
           <SidebarItem icon={<Shield />} label={t('common.security')} active={activeTab === 'security'} isOpen={isSidebarOpen} onClick={() => setActiveTab('security')} />
           {user.role === 'admin' && (
             <SidebarItem icon={<Users />} label={t('common.users')} active={activeTab === 'users'} isOpen={isSidebarOpen} onClick={() => setActiveTab('users')} />
@@ -371,6 +372,7 @@ const Dashboard = ({ user }) => {
           <button onClick={() => setActiveTab('overview')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'overview' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>{t('common.overview')}</button>
           <button onClick={() => setActiveTab('my-products')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'my-products' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>{t('common.my_products')}</button>
           <button onClick={() => setActiveTab('my-purchases')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'my-purchases' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>Mis Compras</button>
+          <button onClick={() => setActiveTab('my-sales')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'my-sales' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>Mis Ventas</button>
           <button onClick={() => setActiveTab('security')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'security' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>{t('common.security')}</button>
           {user.role === 'admin' && (
             <button onClick={() => setActiveTab('users')} className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'users' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>{t('common.users')}</button>
@@ -406,7 +408,7 @@ const Dashboard = ({ user }) => {
             )}
 
             {/* Administrative Alerts for Commission */}
-            {user.role === 'admin' && recentOrders.some(o => o.status === 'paid' && !o.isAdminNotified) && (
+            {user.role === 'admin' && mySales.some(o => o.status === 'paid' && !o.isAdminNotified) && (
               <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-lg mb-6 flex justify-between items-center animate-bounce">
                 <div className="flex items-center">
                   <DollarSign className="w-6 h-6 text-emerald-600 mr-3" />
@@ -417,7 +419,7 @@ const Dashboard = ({ user }) => {
             )}
 
             {/* Seller Alerts */}
-            {recentOrders.some(o => o.status === 'paid' && !o.isSellerNotified) && (
+            {mySales.some(o => o.status === 'paid' && !o.isSellerNotified) && (
               <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-r-lg mb-6 flex justify-between items-center animate-pulse">
                 <div className="flex items-center">
                   <Activity className="w-6 h-6 text-indigo-600 mr-3" />
@@ -437,7 +439,7 @@ const Dashboard = ({ user }) => {
             </div>
 
             <div className="bg-white rounded-xl shadow p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">{t('common.recent_orders')}</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4 font-mono uppercase tracking-tighter">Actividad Reciente</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
@@ -452,7 +454,7 @@ const Dashboard = ({ user }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {recentOrders
+                    {mySales
                       .filter(o =>
                         o._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         o.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -566,7 +568,7 @@ const Dashboard = ({ user }) => {
                           </td>
                         </tr>
                       ))}
-                    {recentOrders.length === 0 && <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500">No orders found.</td></tr>}
+                    {mySales.length === 0 && <tr><td colSpan="7" className="px-6 py-4 text-center text-gray-500 italic">No tienes ventas recientes aún.</td></tr>}
                   </tbody>
                 </table>
               </div>
